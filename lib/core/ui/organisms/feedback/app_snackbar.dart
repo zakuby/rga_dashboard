@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../result/result.dart';
+import 'package:rga_dashboard/core/result/result.dart';
 import '../../theme/app_colors.dart';
 
 /// App snackbar helper for showing consistent notifications.

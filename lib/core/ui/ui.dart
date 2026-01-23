@@ -9,6 +9,7 @@
 /// ```dart
 /// import 'package:rga_dashboard/core/ui/ui.dart';
 /// ```
+library;
 
 export 'atoms/atoms.dart';
 export 'molecules/molecules.dart';
