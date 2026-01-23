@@ -15,9 +15,9 @@ class DashboardCubit extends Cubit<DashboardState> {
   DashboardCubit({
     required GetWidgetsUseCase getWidgetsUseCase,
     required ReorderWidgetsUseCase reorderWidgetsUseCase,
-  })  : _getWidgetsUseCase = getWidgetsUseCase,
-        _reorderWidgetsUseCase = reorderWidgetsUseCase,
-        super(const DashboardState.initial());
+  }) : _getWidgetsUseCase = getWidgetsUseCase,
+       _reorderWidgetsUseCase = reorderWidgetsUseCase,
+       super(const DashboardState.initial());
 
   /// Loads dashboard widgets.
   Future<void> loadWidgets() async {
@@ -54,7 +54,9 @@ class DashboardCubit extends Cubit<DashboardState> {
     emit(DashboardState.reordering(reorderedWidgets));
 
     // Persist in background
-    final result = await _reorderWidgetsUseCase(ReorderParams(reorderedWidgets));
+    final result = await _reorderWidgetsUseCase(
+      ReorderParams(reorderedWidgets),
+    );
 
     result.fold(
       onSuccess: (_) => emit(DashboardState.loaded(reorderedWidgets)),

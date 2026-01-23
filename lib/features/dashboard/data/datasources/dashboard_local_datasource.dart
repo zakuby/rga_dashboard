@@ -57,10 +57,7 @@ class DashboardLocalDataSourceImpl implements DashboardLocalDataSource {
   @override
   Future<bool> hasWidgets() async {
     final db = await DatabaseHelper.database;
-    final result = await db.query(
-      DatabaseHelper.tableWidgets,
-      limit: 1,
-    );
+    final result = await db.query(DatabaseHelper.tableWidgets, limit: 1);
     return result.isNotEmpty;
   }
 

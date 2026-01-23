@@ -8,7 +8,7 @@ A Flutter dashboard application implementing Clean Architecture, reactive state 
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Running Tests](#running-tests)
-- [AI Prompt Log](#ai-prompt-log)
+- [AI Workflow](#ai-workflow)
 
 ---
 
@@ -97,7 +97,7 @@ flutter test --coverage       # With coverage report
 
 ---
 
-## AI Prompt Log
+## AI Workflow
 
 This section documents key architectural decisions made during development, providing rationale for technology and pattern choices.
 

@@ -67,11 +67,7 @@ class StockTickerCard extends StatelessWidget {
             icon: Icons.show_chart,
             iconColor: theme.colorScheme.secondary,
           ),
-          const Expanded(
-            child: Center(
-              child: Text('No stock data available'),
-            ),
-          ),
+          const Expanded(child: Center(child: Text('No stock data available'))),
         ],
       ),
     );

@@ -6,10 +6,7 @@ import '../entities/user.dart';
 abstract class AuthRepository {
   /// Authenticates a user with email and password.
   /// Returns [User] on success or [Failure] on error.
-  Future<Result<User>> login({
-    required String email,
-    required String password,
-  });
+  Future<Result<User>> login({required String email, required String password});
 
   /// Logs out the current user.
   /// Returns true on success.

@@ -19,10 +19,10 @@ class AuthCubit extends Cubit<AuthState> {
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckAuthStatusUseCase checkAuthStatusUseCase,
-  })  : _loginUseCase = loginUseCase,
-        _logoutUseCase = logoutUseCase,
-        _checkAuthStatusUseCase = checkAuthStatusUseCase,
-        super(const AuthState.initial());
+  }) : _loginUseCase = loginUseCase,
+       _logoutUseCase = logoutUseCase,
+       _checkAuthStatusUseCase = checkAuthStatusUseCase,
+       super(const AuthState.initial());
 
   static final _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
@@ -51,10 +51,12 @@ class AuthCubit extends Cubit<AuthState> {
     final passwordError = _validatePassword(password);
 
     if (emailError != null || passwordError != null) {
-      emit(AuthState.validationError(
-        emailError: emailError,
-        passwordError: passwordError,
-      ));
+      emit(
+        AuthState.validationError(
+          emailError: emailError,
+          passwordError: passwordError,
+        ),
+      );
       return;
     }
 
@@ -67,10 +69,8 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       onSuccess: (user) => emit(AuthState.authenticated(user)),
-      onFailure: (failure) => emit(AuthState.failure(
-        message: failure.message,
-        type: failure.type,
-      )),
+      onFailure: (failure) =>
+          emit(AuthState.failure(message: failure.message, type: failure.type)),
     );
   }
 
@@ -89,10 +89,8 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       onSuccess: (_) => emit(const AuthState.unauthenticated()),
-      onFailure: (failure) => emit(AuthState.failure(
-        message: failure.message,
-        type: failure.type,
-      )),
+      onFailure: (failure) =>
+          emit(AuthState.failure(message: failure.message, type: failure.type)),
     );
   }
 

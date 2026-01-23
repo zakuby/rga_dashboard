@@ -1,13 +1,7 @@
 part of 'auth_cubit.dart';
 
 /// Status of authentication operations.
-enum AuthStatus {
-  initial,
-  loading,
-  authenticated,
-  unauthenticated,
-  failure,
-}
+enum AuthStatus { initial, loading, authenticated, unauthenticated, failure }
 
 /// State representing the current authentication status.
 final class AuthState extends Equatable {
@@ -32,27 +26,23 @@ final class AuthState extends Equatable {
   const AuthState.loading() : this(status: AuthStatus.loading);
 
   const AuthState.authenticated(User user)
-      : this(status: AuthStatus.authenticated, user: user);
+    : this(status: AuthStatus.authenticated, user: user);
 
   const AuthState.unauthenticated() : this(status: AuthStatus.unauthenticated);
 
-  const AuthState.failure({
-    required String message,
-    FailureType? type,
-  }) : this(
-          status: AuthStatus.failure,
-          errorMessage: message,
-          failureType: type,
-        );
+  const AuthState.failure({required String message, FailureType? type})
+    : this(
+        status: AuthStatus.failure,
+        errorMessage: message,
+        failureType: type,
+      );
 
-  const AuthState.validationError({
-    String? emailError,
-    String? passwordError,
-  }) : this(
-          status: AuthStatus.unauthenticated,
-          emailError: emailError,
-          passwordError: passwordError,
-        );
+  const AuthState.validationError({String? emailError, String? passwordError})
+    : this(
+        status: AuthStatus.unauthenticated,
+        emailError: emailError,
+        passwordError: passwordError,
+      );
 
   bool get hasValidationErrors => emailError != null || passwordError != null;
 
@@ -70,11 +60,22 @@ final class AuthState extends Equatable {
       user: user ?? this.user,
       errorMessage: errorMessage ?? this.errorMessage,
       failureType: failureType ?? this.failureType,
-      emailError: clearValidationErrors ? null : (emailError ?? this.emailError),
-      passwordError: clearValidationErrors ? null : (passwordError ?? this.passwordError),
+      emailError: clearValidationErrors
+          ? null
+          : (emailError ?? this.emailError),
+      passwordError: clearValidationErrors
+          ? null
+          : (passwordError ?? this.passwordError),
     );
   }
 
   @override
-  List<Object?> get props => [status, user, errorMessage, failureType, emailError, passwordError];
+  List<Object?> get props => [
+    status,
+    user,
+    errorMessage,
+    failureType,
+    emailError,
+    passwordError,
+  ];
 }

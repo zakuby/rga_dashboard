@@ -18,17 +18,15 @@ class DashboardPage extends StatelessWidget {
         builder: (context, state) {
           return switch (state.status) {
             DashboardStatus.initial ||
-            DashboardStatus.loading =>
-              const LoadingView(),
+            DashboardStatus.loading => const LoadingView(),
             DashboardStatus.failure => ErrorStateView(
-                message: state.errorMessage ?? 'An error occurred',
-                onRetry: () {
-                  context.read<DashboardCubit>().loadWidgets();
-                },
-              ),
+              message: state.errorMessage ?? 'An error occurred',
+              onRetry: () {
+                context.read<DashboardCubit>().loadWidgets();
+              },
+            ),
             DashboardStatus.loaded ||
-            DashboardStatus.reordering =>
-              _buildDashboardGrid(context, state),
+            DashboardStatus.reordering => _buildDashboardGrid(context, state),
           };
         },
       ),
@@ -71,9 +69,7 @@ class DashboardPage extends StatelessWidget {
     final widgets = state.widgets;
 
     if (widgets.isEmpty) {
-      return const Center(
-        child: Text('No widgets available'),
-      );
+      return const Center(child: Text('No widgets available'));
     }
 
     return LayoutBuilder(
@@ -82,8 +78,8 @@ class DashboardPage extends StatelessWidget {
         final crossAxisCount = constraints.maxWidth > 900
             ? 3
             : constraints.maxWidth > 600
-                ? 2
-                : 1;
+            ? 2
+            : 1;
 
         return ReorderableListView.builder(
           padding: const EdgeInsets.all(16),
@@ -96,10 +92,7 @@ class DashboardPage extends StatelessWidget {
               animation: animation,
               builder: (context, child) {
                 final elevation = Tween<double>(begin: 0, end: 8).evaluate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeInOut,
-                  ),
+                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
                 );
                 return Material(
                   elevation: elevation,
@@ -153,10 +146,7 @@ class _DraggableWidgetItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: SizedBox(
-        height: 180,
-        child: SmartWidgetCard(widget: widget),
-      ),
+      child: SizedBox(height: 180, child: SmartWidgetCard(widget: widget)),
     );
   }
 }

@@ -67,11 +67,7 @@ class QuickNotesCard extends StatelessWidget {
             icon: Icons.sticky_note_2,
             iconColor: theme.colorScheme.onSurfaceVariant,
           ),
-          const Expanded(
-            child: Center(
-              child: Text('No notes yet'),
-            ),
-          ),
+          const Expanded(child: Center(child: Text('No notes yet'))),
         ],
       ),
     );

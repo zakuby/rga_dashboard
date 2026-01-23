@@ -17,9 +17,15 @@ void main() {
 
   setUp(() {
     mockAuthCubit = MockAuthCubit();
-    when(() => mockAuthCubit.state).thenReturn(const AuthState.unauthenticated());
-    when(() => mockAuthCubit.login(email: any(named: 'email'), password: any(named: 'password')))
-        .thenAnswer((_) async {});
+    when(
+      () => mockAuthCubit.state,
+    ).thenReturn(const AuthState.unauthenticated());
+    when(
+      () => mockAuthCubit.login(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => mockAuthCubit.clearValidationErrors()).thenReturn(null);
   });
 
@@ -45,12 +51,23 @@ void main() {
     testWidgets('calls login when submit button is pressed', (tester) async {
       await tester.pumpWidget(createTestWidget());
 
-      await tester.enterText(find.byKey(const Key('login_email_field')), 'test@example.com');
-      await tester.enterText(find.byKey(const Key('login_password_field')), 'password123');
+      await tester.enterText(
+        find.byKey(const Key('login_email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('login_password_field')),
+        'password123',
+      );
       await tester.tap(find.byKey(const Key('login_submit_button')));
       await tester.pump();
 
-      verify(() => mockAuthCubit.login(email: 'test@example.com', password: 'password123')).called(1);
+      verify(
+        () => mockAuthCubit.login(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
     });
 
     testWidgets('displays validation errors from state', (tester) async {
@@ -67,7 +84,9 @@ void main() {
       expect(find.text('Please enter your password'), findsOneWidget);
     });
 
-    testWidgets('calls clearValidationErrors when input changes', (tester) async {
+    testWidgets('calls clearValidationErrors when input changes', (
+      tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
 
       await tester.enterText(find.byKey(const Key('login_email_field')), 'a');
@@ -76,26 +95,38 @@ void main() {
       verify(() => mockAuthCubit.clearValidationErrors()).called(1);
     });
 
-    testWidgets('shows loading indicator when state is loading', (tester) async {
+    testWidgets('shows loading indicator when state is loading', (
+      tester,
+    ) async {
       when(() => mockAuthCubit.state).thenReturn(const AuthState.loading());
 
       await tester.pumpWidget(createTestWidget());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      final button = tester.widget<PrimaryButton>(find.byKey(const Key('login_submit_button')));
+      final button = tester.widget<PrimaryButton>(
+        find.byKey(const Key('login_submit_button')),
+      );
       expect(button.isLoading, isTrue);
     });
 
-    testWidgets('shows error snackbar on authentication failure', (tester) async {
+    testWidgets('shows error snackbar on authentication failure', (
+      tester,
+    ) async {
       final statesController = StreamController<AuthState>.broadcast();
-      whenListen(mockAuthCubit, statesController.stream, initialState: const AuthState.unauthenticated());
+      whenListen(
+        mockAuthCubit,
+        statesController.stream,
+        initialState: const AuthState.unauthenticated(),
+      );
 
       await tester.pumpWidget(createTestWidget());
 
-      statesController.add(const AuthState.failure(
-        message: 'Invalid email or password',
-        type: FailureType.authentication,
-      ));
+      statesController.add(
+        const AuthState.failure(
+          message: 'Invalid email or password',
+          type: FailureType.authentication,
+        ),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 

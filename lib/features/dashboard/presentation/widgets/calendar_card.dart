@@ -69,11 +69,7 @@ class CalendarCard extends StatelessWidget {
             icon: Icons.calendar_today,
             iconColor: theme.colorScheme.error,
           ),
-          const Expanded(
-            child: Center(
-              child: Text('No events scheduled'),
-            ),
-          ),
+          const Expanded(child: Center(child: Text('No events scheduled'))),
         ],
       ),
     );

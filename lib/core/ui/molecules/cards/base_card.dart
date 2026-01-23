@@ -21,11 +21,9 @@ class BaseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = gradientColors ??
-        [
-          theme.colorScheme.surfaceContainerHighest,
-          theme.colorScheme.surface,
-        ];
+    final colors =
+        gradientColors ??
+        [theme.colorScheme.surfaceContainerHighest, theme.colorScheme.surface];
 
     return Card(
       elevation: elevation,

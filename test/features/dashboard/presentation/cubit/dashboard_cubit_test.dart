@@ -65,8 +65,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [loading, loaded] when loadWidgets succeeds',
         build: () {
-          when(() => mockGetWidgetsUseCase())
-              .thenAnswer((_) async => Success(testWidgets));
+          when(
+            () => mockGetWidgetsUseCase(),
+          ).thenAnswer((_) async => Success(testWidgets));
           return cubit;
         },
         act: (cubit) => cubit.loadWidgets(),
@@ -82,9 +83,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [loading, failure] when loadWidgets fails',
         build: () {
-          when(() => mockGetWidgetsUseCase()).thenAnswer(
-            (_) async => const Failure('Failed to load widgets'),
-          );
+          when(
+            () => mockGetWidgetsUseCase(),
+          ).thenAnswer((_) async => const Failure('Failed to load widgets'));
           return cubit;
         },
         act: (cubit) => cubit.loadWidgets(),
@@ -97,8 +98,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [loading, loaded] with empty list when no widgets',
         build: () {
-          when(() => mockGetWidgetsUseCase())
-              .thenAnswer((_) async => const Success([]));
+          when(
+            () => mockGetWidgetsUseCase(),
+          ).thenAnswer((_) async => const Success([]));
           return cubit;
         },
         act: (cubit) => cubit.loadWidgets(),
@@ -113,8 +115,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [reordering, loaded] when reorder succeeds (move forward)',
         build: () {
-          when(() => mockReorderWidgetsUseCase(any()))
-              .thenAnswer((_) async => const Success(true));
+          when(
+            () => mockReorderWidgetsUseCase(any()),
+          ).thenAnswer((_) async => const Success(true));
           return cubit;
         },
         seed: () => DashboardState.loaded(testWidgets),
@@ -139,8 +142,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [reordering, loaded] when reorder succeeds (move backward)',
         build: () {
-          when(() => mockReorderWidgetsUseCase(any()))
-              .thenAnswer((_) async => const Success(true));
+          when(
+            () => mockReorderWidgetsUseCase(any()),
+          ).thenAnswer((_) async => const Success(true));
           return cubit;
         },
         seed: () => DashboardState.loaded(testWidgets),
@@ -162,8 +166,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'reverts to original order when reorder fails',
         build: () {
-          when(() => mockReorderWidgetsUseCase(any()))
-              .thenAnswer((_) async => const Failure('Failed to save'));
+          when(
+            () => mockReorderWidgetsUseCase(any()),
+          ).thenAnswer((_) async => const Failure('Failed to save'));
           return cubit;
         },
         seed: () => DashboardState.loaded(testWidgets),
@@ -187,8 +192,9 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'calls loadWidgets when resetWidgets is called',
         build: () {
-          when(() => mockGetWidgetsUseCase())
-              .thenAnswer((_) async => Success(testWidgets));
+          when(
+            () => mockGetWidgetsUseCase(),
+          ).thenAnswer((_) async => Success(testWidgets));
           return cubit;
         },
         act: (cubit) => cubit.resetWidgets(),

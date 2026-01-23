@@ -27,9 +27,7 @@ class RgaDashboardApp extends StatelessWidget {
         BlocProvider<AuthCubit>(
           create: (_) => getIt<AuthCubit>()..checkAuthStatus(),
         ),
-        BlocProvider<DashboardCubit>(
-          create: (_) => getIt<DashboardCubit>(),
-        ),
+        BlocProvider<DashboardCubit>(create: (_) => getIt<DashboardCubit>()),
       ],
       child: MaterialApp(
         title: 'RGA Dashboard',
@@ -51,15 +49,11 @@ class RgaDashboardApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -80,15 +74,11 @@ class RgaDashboardApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -118,15 +108,11 @@ class AuthGate extends StatelessWidget {
       buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) {
         return switch (state.status) {
-          AuthStatus.initial ||
-          AuthStatus.loading => const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
+          AuthStatus.initial || AuthStatus.loading => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
           AuthStatus.authenticated => const DashboardPage(),
-          AuthStatus.unauthenticated ||
-          AuthStatus.failure => const LoginPage(),
+          AuthStatus.unauthenticated || AuthStatus.failure => const LoginPage(),
         };
       },
     );

@@ -24,10 +24,7 @@ class EventListItem extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          left: BorderSide(
-            color: color,
-            width: borderWidth,
-          ),
+          left: BorderSide(color: color, width: borderWidth),
         ),
       ),
       padding: const EdgeInsets.only(left: 8),

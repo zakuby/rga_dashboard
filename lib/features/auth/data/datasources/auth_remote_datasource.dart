@@ -7,10 +7,7 @@ abstract class AuthRemoteDataSource {
   /// Returns [UserModel] on success.
   /// Throws [AuthenticationException] for invalid credentials.
   /// Throws [TimeoutException] for timeouts.
-  Future<UserModel> login({
-    required String email,
-    required String password,
-  });
+  Future<UserModel> login({required String email, required String password});
 }
 
 /// Simulated implementation of [AuthRemoteDataSource].
@@ -39,8 +36,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     // Validate credentials
-    if (email.toLowerCase() != _validEmail ||
-        password != _validPassword) {
+    if (email.toLowerCase() != _validEmail || password != _validPassword) {
       throw const AuthenticationException(
         'Invalid email or password. Please try again.',
       );
@@ -59,9 +55,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final localPart = email.split('@').first;
     return localPart
         .split(RegExp(r'[._-]'))
-        .map((word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
-            : '')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+              : '',
+        )
         .join(' ');
   }
 }

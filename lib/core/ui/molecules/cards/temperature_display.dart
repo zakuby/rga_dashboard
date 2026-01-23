@@ -22,10 +22,7 @@ class TemperatureDisplay extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        TemperatureText(
-          temperature: temperature,
-          unit: unit,
-        ),
+        TemperatureText(temperature: temperature, unit: unit),
         if (condition != null) ...[
           const SizedBox(width: 8),
           Padding(

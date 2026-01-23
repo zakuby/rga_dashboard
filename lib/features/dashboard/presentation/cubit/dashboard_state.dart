@@ -1,13 +1,7 @@
 part of 'dashboard_cubit.dart';
 
 /// Status of dashboard operations.
-enum DashboardStatus {
-  initial,
-  loading,
-  loaded,
-  reordering,
-  failure,
-}
+enum DashboardStatus { initial, loading, loaded, reordering, failure }
 
 /// State representing the current dashboard state.
 final class DashboardState extends Equatable {
@@ -26,13 +20,13 @@ final class DashboardState extends Equatable {
   const DashboardState.loading() : this(status: DashboardStatus.loading);
 
   const DashboardState.loaded(List<DashboardWidget> widgets)
-      : this(status: DashboardStatus.loaded, widgets: widgets);
+    : this(status: DashboardStatus.loaded, widgets: widgets);
 
   const DashboardState.reordering(List<DashboardWidget> widgets)
-      : this(status: DashboardStatus.reordering, widgets: widgets);
+    : this(status: DashboardStatus.reordering, widgets: widgets);
 
   const DashboardState.failure(String message)
-      : this(status: DashboardStatus.failure, errorMessage: message);
+    : this(status: DashboardStatus.failure, errorMessage: message);
 
   DashboardState copyWith({
     DashboardStatus? status,

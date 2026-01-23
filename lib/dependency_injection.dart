@@ -33,10 +33,8 @@ Future<void> initDependencies() async {
 
   // Repository
   getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      remoteDataSource: getIt(),
-      localDataSource: getIt(),
-    ),
+    () =>
+        AuthRepositoryImpl(remoteDataSource: getIt(), localDataSource: getIt()),
   );
 
   // Use Cases

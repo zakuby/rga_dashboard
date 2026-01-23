@@ -43,8 +43,9 @@ void main() {
 
   group('ReorderWidgetsUseCase', () {
     test('should call repository saveWidgetOrder', () async {
-      when(() => mockRepository.saveWidgetOrder(any()))
-          .thenAnswer((_) async => const Success(true));
+      when(
+        () => mockRepository.saveWidgetOrder(any()),
+      ).thenAnswer((_) async => const Success(true));
 
       await useCase(ReorderParams(testWidgets));
 
@@ -72,8 +73,9 @@ void main() {
     });
 
     test('should return Success when save succeeds', () async {
-      when(() => mockRepository.saveWidgetOrder(any()))
-          .thenAnswer((_) async => const Success(true));
+      when(
+        () => mockRepository.saveWidgetOrder(any()),
+      ).thenAnswer((_) async => const Success(true));
 
       final result = await useCase(ReorderParams(testWidgets));
 
@@ -82,11 +84,10 @@ void main() {
     });
 
     test('should return Failure when save fails', () async {
-      when(() => mockRepository.saveWidgetOrder(any()))
-          .thenAnswer((_) async => const Failure(
-                'Failed to save order',
-                type: FailureType.cache,
-              ));
+      when(() => mockRepository.saveWidgetOrder(any())).thenAnswer(
+        (_) async =>
+            const Failure('Failed to save order', type: FailureType.cache),
+      );
 
       final result = await useCase(ReorderParams(testWidgets));
 
@@ -97,8 +98,9 @@ void main() {
     });
 
     test('should handle empty widgets list', () async {
-      when(() => mockRepository.saveWidgetOrder(any()))
-          .thenAnswer((_) async => const Success(true));
+      when(
+        () => mockRepository.saveWidgetOrder(any()),
+      ).thenAnswer((_) async => const Success(true));
 
       final result = await useCase(const ReorderParams([]));
 

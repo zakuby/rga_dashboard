@@ -39,8 +39,9 @@ void main() {
 
   group('GetWidgetsUseCase', () {
     test('should call repository getWidgets', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => Success(testWidgets));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => Success(testWidgets));
 
       await useCase();
 
@@ -48,8 +49,9 @@ void main() {
     });
 
     test('should return Success with widgets list', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => Success(testWidgets));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => Success(testWidgets));
 
       final result = await useCase();
 
@@ -62,8 +64,9 @@ void main() {
     });
 
     test('should return Success with empty list when no widgets', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => const Success(<DashboardWidget>[]));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => const Success(<DashboardWidget>[]));
 
       final result = await useCase();
 
@@ -72,11 +75,10 @@ void main() {
     });
 
     test('should return Failure when repository fails', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => const Failure(
-                'Failed to load widgets',
-                type: FailureType.cache,
-              ));
+      when(() => mockRepository.getWidgets()).thenAnswer(
+        (_) async =>
+            const Failure('Failed to load widgets', type: FailureType.cache),
+      );
 
       final result = await useCase();
 
@@ -87,11 +89,10 @@ void main() {
     });
 
     test('should return unknown failure on unexpected error', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => const Failure(
-                'Unexpected error',
-                type: FailureType.unknown,
-              ));
+      when(() => mockRepository.getWidgets()).thenAnswer(
+        (_) async =>
+            const Failure('Unexpected error', type: FailureType.unknown),
+      );
 
       final result = await useCase();
 
@@ -124,8 +125,9 @@ void main() {
         ),
       ];
 
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => Success(orderedWidgets));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => Success(orderedWidgets));
 
       final result = await useCase();
 

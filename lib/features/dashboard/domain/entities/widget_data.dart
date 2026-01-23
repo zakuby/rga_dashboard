@@ -48,11 +48,11 @@ final class WeatherData extends WidgetData {
 
   @override
   Map<String, dynamic> toMap() => {
-        'location': location,
-        'temperature': temperature,
-        'condition': condition,
-        'humidity': humidity,
-      };
+    'location': location,
+    'temperature': temperature,
+    'condition': condition,
+    'humidity': humidity,
+  };
 
   @override
   List<Object?> get props => [location, temperature, condition, humidity];
@@ -79,10 +79,10 @@ final class Stock extends Equatable {
   }
 
   Map<String, dynamic> toMap() => {
-        'symbol': symbol,
-        'price': price,
-        'change': change,
-      };
+    'symbol': symbol,
+    'price': price,
+    'change': change,
+  };
 
   @override
   List<Object?> get props => [symbol, price, change];
@@ -95,7 +95,8 @@ final class StockTickerData extends WidgetData {
   const StockTickerData({required this.stocks});
 
   factory StockTickerData.fromMap(Map<String, dynamic> map) {
-    final stocksList = (map['stocks'] as List<dynamic>?)
+    final stocksList =
+        (map['stocks'] as List<dynamic>?)
             ?.map((s) => Stock.fromMap(s as Map<String, dynamic>))
             .toList() ??
         [];
@@ -104,8 +105,8 @@ final class StockTickerData extends WidgetData {
 
   @override
   Map<String, dynamic> toMap() => {
-        'stocks': stocks.map((s) => s.toMap()).toList(),
-      };
+    'stocks': stocks.map((s) => s.toMap()).toList(),
+  };
 
   @override
   List<Object?> get props => [stocks];
@@ -119,15 +120,12 @@ final class NewsSummaryData extends WidgetData {
 
   factory NewsSummaryData.fromMap(Map<String, dynamic> map) {
     return NewsSummaryData(
-      headlines:
-          (map['headlines'] as List<dynamic>?)?.cast<String>() ?? [],
+      headlines: (map['headlines'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 
   @override
-  Map<String, dynamic> toMap() => {
-        'headlines': headlines,
-      };
+  Map<String, dynamic> toMap() => {'headlines': headlines};
 
   @override
   List<Object?> get props => [headlines];
@@ -138,10 +136,7 @@ final class CalendarEvent extends Equatable {
   final String title;
   final String time;
 
-  const CalendarEvent({
-    required this.title,
-    required this.time,
-  });
+  const CalendarEvent({required this.title, required this.time});
 
   factory CalendarEvent.fromMap(Map<String, dynamic> map) {
     return CalendarEvent(
@@ -150,10 +145,7 @@ final class CalendarEvent extends Equatable {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-        'title': title,
-        'time': time,
-      };
+  Map<String, dynamic> toMap() => {'title': title, 'time': time};
 
   @override
   List<Object?> get props => [title, time];
@@ -166,7 +158,8 @@ final class CalendarData extends WidgetData {
   const CalendarData({required this.events});
 
   factory CalendarData.fromMap(Map<String, dynamic> map) {
-    final eventsList = (map['events'] as List<dynamic>?)
+    final eventsList =
+        (map['events'] as List<dynamic>?)
             ?.map((e) => CalendarEvent.fromMap(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -175,8 +168,8 @@ final class CalendarData extends WidgetData {
 
   @override
   Map<String, dynamic> toMap() => {
-        'events': events.map((e) => e.toMap()).toList(),
-      };
+    'events': events.map((e) => e.toMap()).toList(),
+  };
 
   @override
   List<Object?> get props => [events];
@@ -195,9 +188,7 @@ final class QuickNotesData extends WidgetData {
   }
 
   @override
-  Map<String, dynamic> toMap() => {
-        'notes': notes,
-      };
+  Map<String, dynamic> toMap() => {'notes': notes};
 
   @override
   List<Object?> get props => [notes];

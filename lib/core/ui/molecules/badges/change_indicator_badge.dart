@@ -20,7 +20,9 @@ class ChangeIndicatorBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isPositive ? AppColors.stockPositive : AppColors.stockNegative;
+    final color = isPositive
+        ? AppColors.stockPositive
+        : AppColors.stockNegative;
     final icon = isPositive ? Icons.arrow_upward : Icons.arrow_downward;
     final sign = isPositive ? '+' : '';
     final percent = showPercentSign ? '%' : '';
@@ -34,12 +36,7 @@ class ChangeIndicatorBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showArrow)
-            Icon(
-              icon,
-              size: 12,
-              color: color,
-            ),
+          if (showArrow) Icon(icon, size: 12, color: color),
           Text(
             '$sign${change.toStringAsFixed(1)}$percent',
             style: TextStyle(

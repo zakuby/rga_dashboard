@@ -9,7 +9,8 @@ import 'package:rga_dashboard/features/dashboard/domain/entities/dashboard_widge
 import 'package:rga_dashboard/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:rga_dashboard/features/dashboard/presentation/pages/dashboard_page.dart';
 
-class MockDashboardCubit extends MockCubit<DashboardState> implements DashboardCubit {}
+class MockDashboardCubit extends MockCubit<DashboardState>
+    implements DashboardCubit {}
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
@@ -49,8 +50,12 @@ void main() {
     mockDashboardCubit = MockDashboardCubit();
     mockAuthCubit = MockAuthCubit();
 
-    when(() => mockDashboardCubit.state).thenReturn(const DashboardState.initial());
-    when(() => mockAuthCubit.state).thenReturn(AuthState.authenticated(testUser));
+    when(
+      () => mockDashboardCubit.state,
+    ).thenReturn(const DashboardState.initial());
+    when(
+      () => mockAuthCubit.state,
+    ).thenReturn(AuthState.authenticated(testUser));
   });
 
   Widget createTestWidget() {
@@ -66,14 +71,20 @@ void main() {
   }
 
   group('DashboardPage', () {
-    testWidgets('renders loading view when state is initial or loading', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(const DashboardState.loading());
+    testWidgets('renders loading view when state is initial or loading', (
+      tester,
+    ) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(const DashboardState.loading());
       await tester.pumpWidget(createTestWidget());
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders error view when state is failure', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(const DashboardState.failure('Test error'));
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(const DashboardState.failure('Test error'));
       when(() => mockDashboardCubit.loadWidgets()).thenAnswer((_) async {});
 
       await tester.pumpWidget(createTestWidget());
@@ -87,7 +98,9 @@ void main() {
     });
 
     testWidgets('renders widget list when state is loaded', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
 
       await tester.pumpWidget(createTestWidget());
 
@@ -97,7 +110,9 @@ void main() {
     });
 
     testWidgets('renders empty message when no widgets', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(const DashboardState.loaded([]));
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(const DashboardState.loaded([]));
 
       await tester.pumpWidget(createTestWidget());
 
@@ -105,7 +120,9 @@ void main() {
     });
 
     testWidgets('logout functionality works correctly', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
       when(() => mockAuthCubit.logout()).thenAnswer((_) async {});
 
       await tester.pumpWidget(createTestWidget());
@@ -125,7 +142,9 @@ void main() {
     });
 
     testWidgets('cancel logout does not call logout', (tester) async {
-      when(() => mockDashboardCubit.state).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
 
       await tester.pumpWidget(createTestWidget());
 

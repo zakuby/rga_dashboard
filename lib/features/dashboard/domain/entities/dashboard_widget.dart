@@ -14,12 +14,12 @@ enum WidgetType {
 
   /// Returns the string name of the widget type.
   String get name => switch (this) {
-        WidgetType.weather => 'weather',
-        WidgetType.stockTicker => 'stockTicker',
-        WidgetType.newsSummary => 'newsSummary',
-        WidgetType.calendar => 'calendar',
-        WidgetType.quickNotes => 'quickNotes',
-      };
+    WidgetType.weather => 'weather',
+    WidgetType.stockTicker => 'stockTicker',
+    WidgetType.newsSummary => 'newsSummary',
+    WidgetType.calendar => 'calendar',
+    WidgetType.quickNotes => 'quickNotes',
+  };
 }
 
 /// Domain entity representing a dashboard widget.

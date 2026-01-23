@@ -55,10 +55,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final index = widgets.indexWhere((w) => w.id == widget.id);
 
       if (index == -1) {
-        return const Failure(
-          'Widget not found',
-          type: FailureType.cache,
-        );
+        return const Failure('Widget not found', type: FailureType.cache);
       }
 
       widgets[index] = DashboardWidgetModel.fromEntity(widget);

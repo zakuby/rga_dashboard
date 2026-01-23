@@ -68,11 +68,7 @@ class NewsSummaryCard extends StatelessWidget {
             icon: Icons.newspaper,
             iconColor: theme.colorScheme.tertiary,
           ),
-          const Expanded(
-            child: Center(
-              child: Text('No news available'),
-            ),
-          ),
+          const Expanded(child: Center(child: Text('No news available'))),
         ],
       ),
     );

@@ -22,9 +22,6 @@ class SecondaryButton extends StatelessWidget {
         label: Text(label),
       );
     }
-    return TextButton(
-      onPressed: onPressed,
-      child: Text(label),
-    );
+    return TextButton(onPressed: onPressed, child: Text(label));
   }
 }

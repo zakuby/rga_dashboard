@@ -17,8 +17,9 @@ class DashboardWidgetModel extends DashboardWidget {
   factory DashboardWidgetModel.fromMap(Map<String, dynamic> map) {
     final type = WidgetType.values[map['type_index'] as int];
     final dataJson = map['data'] as String?;
-    final dataMap =
-        dataJson != null ? jsonDecode(dataJson) as Map<String, dynamic> : null;
+    final dataMap = dataJson != null
+        ? jsonDecode(dataJson) as Map<String, dynamic>
+        : null;
 
     return DashboardWidgetModel(
       id: map['id'] as String,

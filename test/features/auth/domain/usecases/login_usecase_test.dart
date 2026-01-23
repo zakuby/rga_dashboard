@@ -30,24 +30,30 @@ void main() {
 
   group('LoginUseCase', () {
     test('should call repository login with correct parameters', () async {
-      when(() => mockRepository.login(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          )).thenAnswer((_) async => Success(testUser));
+      when(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => Success(testUser));
 
       await useCase(testParams);
 
-      verify(() => mockRepository.login(
-            email: 'test@example.com',
-            password: 'password123',
-          )).called(1);
+      verify(
+        () => mockRepository.login(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
     });
 
     test('should return Success with User when login succeeds', () async {
-      when(() => mockRepository.login(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          )).thenAnswer((_) async => Success(testUser));
+      when(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => Success(testUser));
 
       final result = await useCase(testParams);
 
@@ -56,13 +62,17 @@ void main() {
     });
 
     test('should return Failure when repository returns failure', () async {
-      when(() => mockRepository.login(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          )).thenAnswer((_) async => const Failure(
-            'Invalid credentials',
-            type: FailureType.authentication,
-          ));
+      when(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const Failure(
+          'Invalid credentials',
+          type: FailureType.authentication,
+        ),
+      );
 
       final result = await useCase(testParams);
 
@@ -73,13 +83,15 @@ void main() {
     });
 
     test('should return timeout failure when repository times out', () async {
-      when(() => mockRepository.login(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          )).thenAnswer((_) async => const Failure(
-            'Request timed out',
-            type: FailureType.timeout,
-          ));
+      when(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const Failure('Request timed out', type: FailureType.timeout),
+      );
 
       final result = await useCase(testParams);
 
@@ -88,13 +100,15 @@ void main() {
     });
 
     test('should return network failure when no connection', () async {
-      when(() => mockRepository.login(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          )).thenAnswer((_) async => const Failure(
-            'No network connection',
-            type: FailureType.network,
-          ));
+      when(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const Failure('No network connection', type: FailureType.network),
+      );
 
       final result = await useCase(testParams);
 

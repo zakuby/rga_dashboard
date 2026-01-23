@@ -25,15 +25,13 @@ class CardHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: titleStyle ??
+          style:
+              titleStyle ??
               theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
         ),
-        Icon(
-          icon,
-          color: iconColor ?? theme.colorScheme.primary,
-        ),
+        Icon(icon, color: iconColor ?? theme.colorScheme.primary),
       ],
     );
   }

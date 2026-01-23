@@ -33,10 +33,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<UserModel?> getCachedUser() async {
     final db = await DatabaseHelper.database;
-    final maps = await db.query(
-      DatabaseHelper.tableUsers,
-      limit: 1,
-    );
+    final maps = await db.query(DatabaseHelper.tableUsers, limit: 1);
 
     if (maps.isEmpty) {
       return null;
@@ -54,10 +51,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<bool> hasUser() async {
     final db = await DatabaseHelper.database;
-    final result = await db.query(
-      DatabaseHelper.tableUsers,
-      limit: 1,
-    );
+    final result = await db.query(DatabaseHelper.tableUsers, limit: 1);
     return result.isNotEmpty;
   }
 }

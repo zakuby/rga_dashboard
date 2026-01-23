@@ -40,12 +40,15 @@ void main() {
   group('AuthRepositoryImpl', () {
     group('login', () {
       test('should return Success with User when login succeeds', () async {
-        when(() => mockRemoteDataSource.login(
-              email: any(named: 'email'),
-              password: any(named: 'password'),
-            )).thenAnswer((_) async => testUserModel);
-        when(() => mockLocalDataSource.cacheUser(any()))
-            .thenAnswer((_) async {});
+        when(
+          () => mockRemoteDataSource.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => testUserModel);
+        when(
+          () => mockLocalDataSource.cacheUser(any()),
+        ).thenAnswer((_) async {});
 
         final result = await repository.login(
           email: 'test@example.com',
@@ -57,70 +60,86 @@ void main() {
         verify(() => mockLocalDataSource.cacheUser(any())).called(1);
       });
 
-      test('should return Failure with authentication type on AuthenticationException',
-          () async {
-        when(() => mockRemoteDataSource.login(
+      test(
+        'should return Failure with authentication type on AuthenticationException',
+        () async {
+          when(
+            () => mockRemoteDataSource.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenThrow(const AuthenticationException('Invalid credentials'));
+            ),
+          ).thenThrow(const AuthenticationException('Invalid credentials'));
 
-        final result = await repository.login(
-          email: 'wrong@example.com',
-          password: 'wrongpassword',
-        );
+          final result = await repository.login(
+            email: 'wrong@example.com',
+            password: 'wrongpassword',
+          );
 
-        expect(result, isA<Failure<User>>());
-        expect((result as Failure<User>).type, FailureType.authentication);
-        expect(result.message, 'Invalid credentials');
-      });
+          expect(result, isA<Failure<User>>());
+          expect((result as Failure<User>).type, FailureType.authentication);
+          expect(result.message, 'Invalid credentials');
+        },
+      );
 
-      test('should return Failure with timeout type on TimeoutException',
-          () async {
-        when(() => mockRemoteDataSource.login(
+      test(
+        'should return Failure with timeout type on TimeoutException',
+        () async {
+          when(
+            () => mockRemoteDataSource.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenThrow(const TimeoutException('Connection timed out'));
+            ),
+          ).thenThrow(const TimeoutException('Connection timed out'));
 
-        final result = await repository.login(
-          email: 'test@example.com',
-          password: 'password123',
-        );
+          final result = await repository.login(
+            email: 'test@example.com',
+            password: 'password123',
+          );
 
-        expect(result, isA<Failure<User>>());
-        expect((result as Failure<User>).type, FailureType.timeout);
-      });
+          expect(result, isA<Failure<User>>());
+          expect((result as Failure<User>).type, FailureType.timeout);
+        },
+      );
 
-      test('should return Failure with network type on NetworkException',
-          () async {
-        when(() => mockRemoteDataSource.login(
+      test(
+        'should return Failure with network type on NetworkException',
+        () async {
+          when(
+            () => mockRemoteDataSource.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenThrow(const NetworkException('No internet connection'));
+            ),
+          ).thenThrow(const NetworkException('No internet connection'));
 
-        final result = await repository.login(
-          email: 'test@example.com',
-          password: 'password123',
-        );
+          final result = await repository.login(
+            email: 'test@example.com',
+            password: 'password123',
+          );
 
-        expect(result, isA<Failure<User>>());
-        expect((result as Failure<User>).type, FailureType.network);
-      });
+          expect(result, isA<Failure<User>>());
+          expect((result as Failure<User>).type, FailureType.network);
+        },
+      );
 
-      test('should return Failure with unknown type on unexpected error',
-          () async {
-        when(() => mockRemoteDataSource.login(
+      test(
+        'should return Failure with unknown type on unexpected error',
+        () async {
+          when(
+            () => mockRemoteDataSource.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenThrow(Exception('Unexpected'));
+            ),
+          ).thenThrow(Exception('Unexpected'));
 
-        final result = await repository.login(
-          email: 'test@example.com',
-          password: 'password123',
-        );
+          final result = await repository.login(
+            email: 'test@example.com',
+            password: 'password123',
+          );
 
-        expect(result, isA<Failure<User>>());
-        expect((result as Failure<User>).type, FailureType.unknown);
-      });
+          expect(result, isA<Failure<User>>());
+          expect((result as Failure<User>).type, FailureType.unknown);
+        },
+      );
     });
 
     group('logout', () {
@@ -135,8 +154,9 @@ void main() {
       });
 
       test('should return Failure when logout fails', () async {
-        when(() => mockLocalDataSource.clearCache())
-            .thenThrow(Exception('Cache error'));
+        when(
+          () => mockLocalDataSource.clearCache(),
+        ).thenThrow(Exception('Cache error'));
 
         final result = await repository.logout();
 
@@ -147,8 +167,9 @@ void main() {
 
     group('getCurrentUser', () {
       test('should return Success with User when cached', () async {
-        when(() => mockLocalDataSource.getCachedUser())
-            .thenAnswer((_) async => testUserModel);
+        when(
+          () => mockLocalDataSource.getCachedUser(),
+        ).thenAnswer((_) async => testUserModel);
 
         final result = await repository.getCurrentUser();
 
@@ -158,8 +179,9 @@ void main() {
       });
 
       test('should return Success with null when no cached user', () async {
-        when(() => mockLocalDataSource.getCachedUser())
-            .thenAnswer((_) async => null);
+        when(
+          () => mockLocalDataSource.getCachedUser(),
+        ).thenAnswer((_) async => null);
 
         final result = await repository.getCurrentUser();
 
@@ -168,8 +190,9 @@ void main() {
       });
 
       test('should return Failure on CacheException', () async {
-        when(() => mockLocalDataSource.getCachedUser())
-            .thenThrow(const CacheException('Cache read error'));
+        when(
+          () => mockLocalDataSource.getCachedUser(),
+        ).thenThrow(const CacheException('Cache read error'));
 
         final result = await repository.getCurrentUser();
 
@@ -177,16 +200,19 @@ void main() {
         expect((result as Failure<User?>).type, FailureType.cache);
       });
 
-      test('should return Failure with unknown type on unexpected error',
-          () async {
-        when(() => mockLocalDataSource.getCachedUser())
-            .thenThrow(Exception('Unexpected'));
+      test(
+        'should return Failure with unknown type on unexpected error',
+        () async {
+          when(
+            () => mockLocalDataSource.getCachedUser(),
+          ).thenThrow(Exception('Unexpected'));
 
-        final result = await repository.getCurrentUser();
+          final result = await repository.getCurrentUser();
 
-        expect(result, isA<Failure<User?>>());
-        expect((result as Failure<User?>).type, FailureType.unknown);
-      });
+          expect(result, isA<Failure<User?>>());
+          expect((result as Failure<User?>).type, FailureType.unknown);
+        },
+      );
     });
 
     group('isLoggedIn', () {
@@ -200,8 +226,9 @@ void main() {
       });
 
       test('should return Success(false) when no user exists', () async {
-        when(() => mockLocalDataSource.hasUser())
-            .thenAnswer((_) async => false);
+        when(
+          () => mockLocalDataSource.hasUser(),
+        ).thenAnswer((_) async => false);
 
         final result = await repository.isLoggedIn();
 
@@ -210,8 +237,7 @@ void main() {
       });
 
       test('should return Success(false) on error', () async {
-        when(() => mockLocalDataSource.hasUser())
-            .thenThrow(Exception('Error'));
+        when(() => mockLocalDataSource.hasUser()).thenThrow(Exception('Error'));
 
         final result = await repository.isLoggedIn();
 

@@ -25,8 +25,9 @@ void main() {
 
   group('CheckAuthStatusUseCase', () {
     test('should call repository getCurrentUser', () async {
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => Success(testUser));
+      when(
+        () => mockRepository.getCurrentUser(),
+      ).thenAnswer((_) async => Success(testUser));
 
       await useCase();
 
@@ -34,8 +35,9 @@ void main() {
     });
 
     test('should return Success with User when user is cached', () async {
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => Success(testUser));
+      when(
+        () => mockRepository.getCurrentUser(),
+      ).thenAnswer((_) async => Success(testUser));
 
       final result = await useCase();
 
@@ -44,8 +46,9 @@ void main() {
     });
 
     test('should return Success with null when no user is cached', () async {
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => const Success<User?>(null));
+      when(
+        () => mockRepository.getCurrentUser(),
+      ).thenAnswer((_) async => const Success<User?>(null));
 
       final result = await useCase();
 
@@ -54,11 +57,9 @@ void main() {
     });
 
     test('should return Failure when cache access fails', () async {
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => const Failure(
-                'Cache read error',
-                type: FailureType.cache,
-              ));
+      when(() => mockRepository.getCurrentUser()).thenAnswer(
+        (_) async => const Failure('Cache read error', type: FailureType.cache),
+      );
 
       final result = await useCase();
 
@@ -69,11 +70,10 @@ void main() {
     });
 
     test('should return Failure on unknown error', () async {
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => const Failure(
-                'Unexpected error',
-                type: FailureType.unknown,
-              ));
+      when(() => mockRepository.getCurrentUser()).thenAnswer(
+        (_) async =>
+            const Failure('Unexpected error', type: FailureType.unknown),
+      );
 
       final result = await useCase();
 

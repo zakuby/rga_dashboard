@@ -59,7 +59,9 @@ class AppTextField extends StatelessWidget {
       prefixIcon: Icons.lock_outlined,
       suffixIcon: IconButton(
         icon: Icon(
-          obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          obscureText
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
         ),
         onPressed: onToggleVisibility,
       ),

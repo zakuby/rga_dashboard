@@ -17,8 +17,9 @@ void main() {
 
   group('LogoutUseCase', () {
     test('should call repository logout', () async {
-      when(() => mockRepository.logout())
-          .thenAnswer((_) async => const Success(true));
+      when(
+        () => mockRepository.logout(),
+      ).thenAnswer((_) async => const Success(true));
 
       await useCase();
 
@@ -26,8 +27,9 @@ void main() {
     });
 
     test('should return Success with true when logout succeeds', () async {
-      when(() => mockRepository.logout())
-          .thenAnswer((_) async => const Success(true));
+      when(
+        () => mockRepository.logout(),
+      ).thenAnswer((_) async => const Success(true));
 
       final result = await useCase();
 
@@ -36,10 +38,10 @@ void main() {
     });
 
     test('should return Failure when logout fails', () async {
-      when(() => mockRepository.logout()).thenAnswer((_) async => const Failure(
-            'Failed to clear session',
-            type: FailureType.cache,
-          ));
+      when(() => mockRepository.logout()).thenAnswer(
+        (_) async =>
+            const Failure('Failed to clear session', type: FailureType.cache),
+      );
 
       final result = await useCase();
 
@@ -50,10 +52,10 @@ void main() {
     });
 
     test('should return unknown failure on unexpected error', () async {
-      when(() => mockRepository.logout()).thenAnswer((_) async => const Failure(
-            'Unexpected error',
-            type: FailureType.unknown,
-          ));
+      when(() => mockRepository.logout()).thenAnswer(
+        (_) async =>
+            const Failure('Unexpected error', type: FailureType.unknown),
+      );
 
       final result = await useCase();
 

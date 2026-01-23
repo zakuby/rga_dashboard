@@ -30,10 +30,7 @@ class BulletListItem extends StatelessWidget {
           margin: const EdgeInsets.only(top: 6),
           width: bulletSize,
           height: bulletSize,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Expanded(

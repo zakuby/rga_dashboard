@@ -26,9 +26,9 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onLoginPressed() {
     context.read<AuthCubit>().login(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
   }
 
   void _onInputChanged() {

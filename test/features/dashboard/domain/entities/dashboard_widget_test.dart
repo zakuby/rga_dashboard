@@ -311,8 +311,8 @@ void main() {
     test('should create from map correctly', () {
       final map = {
         'stocks': [
-          {'symbol': 'MSFT', 'price': 378.91, 'change': 4.56}
-        ]
+          {'symbol': 'MSFT', 'price': 378.91, 'change': 4.56},
+        ],
       };
 
       final data = StockTickerData.fromMap(map);
@@ -324,9 +324,7 @@ void main() {
 
   group('NewsSummaryData', () {
     test('should create with headlines list', () {
-      const data = NewsSummaryData(
-        headlines: ['Headline 1', 'Headline 2'],
-      );
+      const data = NewsSummaryData(headlines: ['Headline 1', 'Headline 2']);
 
       expect(data.headlines.length, 2);
       expect(data.headlines[0], 'Headline 1');
@@ -342,7 +340,7 @@ void main() {
 
     test('should create from map correctly', () {
       final map = {
-        'headlines': ['News 1', 'News 2']
+        'headlines': ['News 1', 'News 2'],
       };
 
       final data = NewsSummaryData.fromMap(map);
@@ -412,7 +410,7 @@ void main() {
 
     test('should create from map correctly', () {
       final map = {
-        'notes': ['Note A', 'Note B']
+        'notes': ['Note A', 'Note B'],
       };
 
       final data = QuickNotesData.fromMap(map);
@@ -436,8 +434,8 @@ void main() {
     test('should create StockTickerData for stockTicker type', () {
       final data = WidgetData.fromMap('stockTicker', {
         'stocks': [
-          {'symbol': 'AAPL', 'price': 100.0, 'change': 1.0}
-        ]
+          {'symbol': 'AAPL', 'price': 100.0, 'change': 1.0},
+        ],
       });
 
       expect(data, isA<StockTickerData>());
@@ -445,7 +443,7 @@ void main() {
 
     test('should create NewsSummaryData for newsSummary type', () {
       final data = WidgetData.fromMap('newsSummary', {
-        'headlines': ['Test']
+        'headlines': ['Test'],
       });
 
       expect(data, isA<NewsSummaryData>());
@@ -454,8 +452,8 @@ void main() {
     test('should create CalendarData for calendar type', () {
       final data = WidgetData.fromMap('calendar', {
         'events': [
-          {'title': 'Test', 'time': '09:00'}
-        ]
+          {'title': 'Test', 'time': '09:00'},
+        ],
       });
 
       expect(data, isA<CalendarData>());
@@ -463,7 +461,7 @@ void main() {
 
     test('should create QuickNotesData for quickNotes type', () {
       final data = WidgetData.fromMap('quickNotes', {
-        'notes': ['Test']
+        'notes': ['Test'],
       });
 
       expect(data, isA<QuickNotesData>());

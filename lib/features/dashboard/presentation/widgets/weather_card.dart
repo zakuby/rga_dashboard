@@ -27,10 +27,7 @@ class WeatherCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          WeatherCardHeader(
-            title: widget.title,
-            condition: data.condition,
-          ),
+          WeatherCardHeader(title: widget.title, condition: data.condition),
           const SizedBox(height: 8),
           IconListItem(
             icon: Icons.location_on,

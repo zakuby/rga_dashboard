@@ -19,9 +19,7 @@ void main() {
         type: WidgetType.quickNotes,
         title: 'Quick Notes',
         order: 0,
-        widgetData: QuickNotesData(
-          notes: ['Buy groceries', 'Call dentist'],
-        ),
+        widgetData: QuickNotesData(notes: ['Buy groceries', 'Call dentist']),
       );
 
       await tester.pumpWidget(createTestWidget(widget));

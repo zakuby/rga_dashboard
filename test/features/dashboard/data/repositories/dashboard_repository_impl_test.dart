@@ -47,8 +47,9 @@ void main() {
     group('getWidgets', () {
       test('should return widgets when they exist in storage', () async {
         when(() => mockDataSource.hasWidgets()).thenAnswer((_) async => true);
-        when(() => mockDataSource.getWidgets())
-            .thenAnswer((_) async => testWidgetModels);
+        when(
+          () => mockDataSource.getWidgets(),
+        ).thenAnswer((_) async => testWidgetModels);
 
         final result = await repository.getWidgets();
 
@@ -73,8 +74,9 @@ void main() {
       });
 
       test('should return Failure when exception is thrown', () async {
-        when(() => mockDataSource.hasWidgets())
-            .thenThrow(Exception('Database error'));
+        when(
+          () => mockDataSource.hasWidgets(),
+        ).thenThrow(Exception('Database error'));
 
         final result = await repository.getWidgets();
 
@@ -117,8 +119,9 @@ void main() {
       });
 
       test('should return Failure when save fails', () async {
-        when(() => mockDataSource.saveWidgets(any()))
-            .thenThrow(Exception('Save error'));
+        when(
+          () => mockDataSource.saveWidgets(any()),
+        ).thenThrow(Exception('Save error'));
 
         final result = await repository.saveWidgetOrder([]);
 
@@ -129,8 +132,9 @@ void main() {
 
     group('updateWidget', () {
       test('should return Success when widget is found and updated', () async {
-        when(() => mockDataSource.getWidgets())
-            .thenAnswer((_) async => testWidgetModels);
+        when(
+          () => mockDataSource.getWidgets(),
+        ).thenAnswer((_) async => testWidgetModels);
         when(() => mockDataSource.saveWidgets(any())).thenAnswer((_) async {});
 
         const updatedWidget = DashboardWidget(
@@ -143,14 +147,17 @@ void main() {
         final result = await repository.updateWidget(updatedWidget);
 
         expect(result, isA<Success<DashboardWidget>>());
-        expect((result as Success<DashboardWidget>).data.title,
-            'Updated Weather');
+        expect(
+          (result as Success<DashboardWidget>).data.title,
+          'Updated Weather',
+        );
         verify(() => mockDataSource.saveWidgets(any())).called(1);
       });
 
       test('should return Failure when widget not found', () async {
-        when(() => mockDataSource.getWidgets())
-            .thenAnswer((_) async => testWidgetModels);
+        when(
+          () => mockDataSource.getWidgets(),
+        ).thenAnswer((_) async => testWidgetModels);
 
         const nonExistentWidget = DashboardWidget(
           id: 'non-existent',
@@ -166,8 +173,9 @@ void main() {
       });
 
       test('should return Failure when exception is thrown', () async {
-        when(() => mockDataSource.getWidgets())
-            .thenThrow(Exception('Get error'));
+        when(
+          () => mockDataSource.getWidgets(),
+        ).thenThrow(Exception('Get error'));
 
         const widget = DashboardWidget(
           id: 'widget-1',
@@ -198,8 +206,9 @@ void main() {
       });
 
       test('should return Failure when clear fails', () async {
-        when(() => mockDataSource.clearWidgets())
-            .thenThrow(Exception('Clear error'));
+        when(
+          () => mockDataSource.clearWidgets(),
+        ).thenThrow(Exception('Clear error'));
 
         final result = await repository.resetToDefaults();
 
@@ -209,8 +218,9 @@ void main() {
 
       test('should return Failure when save fails', () async {
         when(() => mockDataSource.clearWidgets()).thenAnswer((_) async {});
-        when(() => mockDataSource.saveWidgets(any()))
-            .thenThrow(Exception('Save error'));
+        when(
+          () => mockDataSource.saveWidgets(any()),
+        ).thenThrow(Exception('Save error'));
 
         final result = await repository.resetToDefaults();
 
