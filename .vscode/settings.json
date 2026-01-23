@@ -1,0 +1,9 @@
+{
+  "coverage-gutters.coverageFileNames": [
+    "lcov.info",
+    "coverage/lcov.info"
+  ],
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showRulerCoverage": true,
+  "coverage-gutters.showGutterCoverage": true
+}

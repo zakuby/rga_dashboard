@@ -1,0 +1,8 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Data models may override fields for serialization purposes
+    overridden_fields: false
+    # Allow non-const constructors in Equatable classes when params aren't const
+    prefer_const_constructors_in_immutables: false

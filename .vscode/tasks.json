@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Clean",
+      "type": "shell",
+      "command": "flutter clean && flutter pub get",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build APK (Debug)",
+      "type": "shell",
+      "command": "flutter build apk --debug",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build APK (Release)",
+      "type": "shell",
+      "command": "flutter build apk --release",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build App Bundle",
+      "type": "shell",
+      "command": "flutter build appbundle --release",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build IPA",
+      "type": "shell",
+      "command": "flutter build ipa --release",
+      "group": "build",
+      "problemMatcher": []
+    },
+  ]
+}
