@@ -7,7 +7,7 @@
 ///
 /// Usage:
 /// ```dart
-/// import 'package:rga_dashboard/core/presentation/design_system/design_system.dart';
+/// import 'package:rga_dashboard/core/ui/ui.dart';
 /// ```
 
 export 'atoms/atoms.dart';

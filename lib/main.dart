@@ -5,7 +5,7 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
-import 'injection_container.dart';
+import 'dependency_injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,10 +25,10 @@ class RgaDashboardApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (_) => sl<AuthCubit>()..checkAuthStatus(),
+          create: (_) => getIt<AuthCubit>()..checkAuthStatus(),
         ),
         BlocProvider<DashboardCubit>(
-          create: (_) => sl<DashboardCubit>(),
+          create: (_) => getIt<DashboardCubit>(),
         ),
       ],
       child: MaterialApp(

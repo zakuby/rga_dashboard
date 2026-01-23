@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/presentation/design_system/design_system.dart';
+import '../../../../core/ui/ui.dart';
 import '../cubit/auth_cubit.dart';
 
 /// Login page with email/password authentication.

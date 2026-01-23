@@ -1,16 +1,14 @@
 # RGA Dashboard
 
-A Flutter application showcasing Clean Architecture principles, reactive state management, and a component-based design system.
+A Flutter dashboard application implementing Clean Architecture, reactive state management, and Atomic Design.
 
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
-- [Design System](#design-system)
-- [Features](#features)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
-- [Testing Strategy](#testing-strategy)
-- [Architecture Decision Records](#architecture-decision-records)
+- [Running Tests](#running-tests)
+- [AI Prompt Log](#ai-prompt-log)
 
 ---
 
@@ -22,7 +20,7 @@ This application implements **Clean Architecture** with strict layer separation,
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                        │
+│                    Presentation Layer                       │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │    Pages    │  │   Widgets   │  │   State Management  │  │
 │  │  (Screens)  │  │ (Components)│  │    (Business UI)    │  │
@@ -30,28 +28,20 @@ This application implements **Clean Architecture** with strict layer separation,
 └────────────────────────────┬────────────────────────────────┘
                              │ depends on
 ┌────────────────────────────▼────────────────────────────────┐
-│                      Domain Layer                            │
+│                      Domain Layer                           │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  Entities   │  │  Use Cases  │  │ Repository Contracts │  │
+│  │  Entities   │  │  Use Cases  │  │ Repository Contracts│  │
 │  │   (Models)  │  │  (Actions)  │  │    (Interfaces)     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └────────────────────────────┬────────────────────────────────┘
                              │ depends on
 ┌────────────────────────────▼────────────────────────────────┐
-│                       Data Layer                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Models    │  │ Data Sources│  │ Repository Impls    │  │
-│  │  (DTOs)     │  │(Local/Remote)│  │  (Concrete)        │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+│                       Data Layer                            │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
+│  │   Models    │  │ Data Sources │  │ Repository Impls    │ │
+│  │  (DTOs)     │  │(Local/Remote)│  │  (Concrete)         │ │
+│  └─────────────┘  └──────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-
-```
-User Action → Page → State Manager → Use Case → Repository → Data Source
-                ↑                                                  │
-                └──────────── State Update ←───────────────────────┘
 ```
 
 ### Key Architectural Principles
@@ -66,293 +56,161 @@ User Action → Page → State Manager → Use Case → Repository → Data Sour
 
 ---
 
-## Design System
-
-The presentation layer implements **Atomic Design** methodology, providing a scalable component library.
-
-### Component Hierarchy
-
-| Level | Purpose | Components |
-|-------|---------|------------|
-| **Atoms** | Fundamental UI elements | `PrimaryButton`, `SecondaryButton`, `AppTextField`, `ThemedIcon` |
-| **Molecules** | Composite components | `BaseCard`, `CardHeader`, `IconListItem`, `StatusBadge`, `ChangeIndicatorBadge` |
-| **Organisms** | Feature-complete sections | `ConfirmationDialog`, `ErrorStateView`, `LoadingView`, `AppSnackbar` |
-
-### Theme System
-
-Centralized color management through `AppColors`:
-
-```dart
-import 'package:rga_dashboard/core/presentation/design_system/design_system.dart';
-
-// Semantic colors
-AppColors.primary
-AppColors.success
-AppColors.danger
-AppColors.warning
-
-// With opacity
-AppColors.successWithOpacity(0.2)
-```
-
-### Usage Example
-
-```dart
-import 'package:rga_dashboard/core/presentation/design_system/design_system.dart';
-
-// Atoms
-PrimaryButton(
-  label: 'Submit',
-  onPressed: _handleSubmit,
-  isLoading: state.isLoading,
-)
-
-// Molecules
-BaseCard(
-  child: CardHeader(title: 'Weather', icon: Icons.cloud),
-)
-
-// Organisms
-ErrorStateView(
-  message: 'Failed to load data',
-  onRetry: _handleRetry,
-)
-```
-
----
-
-## Features
-
-### Authentication
-
-- Form validation handled in state management layer
-- Session persistence across application restarts
-- Graceful error handling with user feedback
-
-**Test Credentials:**
-- Email: `test@example.com`
-- Password: `password123`
-
-### Dashboard
-
-- **Widget Types**: Weather, Stock Ticker, News Summary, Calendar, Quick Notes
-- **Drag & Drop Reordering**: Smooth animations with optimistic updates
-- **State Persistence**: Widget order preserved across sessions
-- **Type-Safe Widget Data**: Sealed classes for compile-time exhaustiveness
-
-### Responsive Layout
-
-- Adaptive column count based on viewport width
-- Material 3 design language
-
----
-
 ## Project Structure
 
 ```
 lib/
 ├── core/
-│   ├── database/           # Database configuration
-│   ├── error/              # Exception definitions
-│   ├── presentation/
-│   │   └── design_system/  # Atomic Design components
-│   │       ├── atoms/      # Buttons, inputs, icons
-│   │       ├── molecules/  # Cards, list items, badges
-│   │       ├── organisms/  # Dialogs, feedback components
-│   │       └── theme/      # Color system (AppColors)
-│   ├── result/             # Result<T> type (Success/Failure)
-│   └── usecases/           # Base use case contracts
+│   ├── database/              # SQLite configuration
+│   ├── error/                 # Exception definitions
+│   ├── ui/                    # Atoms, Molecules, Organisms, Theme
+│   ├── result/                # Result<T> type (Success/Failure)
+│   └── usecases/              # Base use case contracts
 │
-├── features/
-│   ├── auth/
-│   │   ├── data/           # Models, data sources, repository impl
-│   │   ├── domain/         # Entities, repository contract, use cases
-│   │   └── presentation/   # State management, pages
-│   │
-│   └── dashboard/
-│       ├── data/           # Models, data sources, repository impl
-│       ├── domain/         # Entities, repository contract, use cases
-│       └── presentation/   # State management, pages, widget cards
+├── features/{feature_name}/   # auth, dashboard
+│   ├── data/                  # Models, data sources, repository impl
+│   ├── domain/                # Entities, repository contract, use cases
+│   └── presentation/          # Cubit, states, pages, widgets
 │
-├── injection_container.dart  # Dependency injection configuration
-└── main.dart                 # Application entry point
-
-test/
-├── core/
-│   ├── error/              # Exception tests
-│   ├── result/             # Result type tests
-│   └── usecases/           # Use case contract tests
-│
-└── features/
-    ├── auth/
-    │   ├── data/           # Model, data source, repository tests
-    │   ├── domain/         # Entity, use case tests
-    │   └── presentation/   # State management, page tests
-    │
-    └── dashboard/
-        ├── data/           # Model, data source, repository tests
-        ├── domain/         # Entity, use case tests
-        └── presentation/   # State management, page, widget tests
+└── dependency_injection.dart  # Dependency injection (GetIt)
 ```
 
 ---
 
 ## Getting Started
 
-### Prerequisites
-
-- Flutter SDK 3.9.2+
-- Dart SDK 3.9.2+
-
-### Installation
-
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/rga_dashboard.git
-cd rga_dashboard
-
-# Install dependencies
 flutter pub get
-
-# Run application
 flutter run
 ```
 
+**Test Credentials:** `test@example.com` / `password123`
+
 ---
 
-## Testing Strategy
-
-### Test Categories
-
-| Category | Location | Purpose |
-|----------|----------|---------|
-| **Unit Tests** | `test/**/domain/`, `test/**/data/` | Business logic, data transformations |
-| **State Tests** | `test/**/presentation/cubit/` | State transitions, side effects |
-| **Widget Tests** | `test/**/presentation/pages/`, `widgets/` | UI rendering, user interactions |
-
-### Running Tests
+## Running Tests
 
 ```bash
-# All tests
-flutter test
-
-# With coverage report
-flutter test --coverage
-
-# Specific test file
-flutter test test/features/auth/presentation/cubit/auth_cubit_test.dart
+flutter test                  # All tests
+flutter test --coverage       # With coverage report
 ```
-
-### Coverage Visualization
-
-This project supports [Coverage Gutters](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) for VS Code:
-
-1. Generate coverage: `flutter test --coverage`
-2. Open Command Palette: `Ctrl+Shift+P`
-3. Run: "Coverage Gutters: Display Coverage"
 
 ---
 
-## Architecture Decision Records
+## AI Prompt Log
 
 This section documents key architectural decisions made during development, providing rationale for technology and pattern choices.
 
-### ADR-001: Result Type Pattern
+### Prompt #1: Clean Architecture & Layered Structure
 
-**Context:** Operations that can fail need a consistent way to communicate success or failure states without relying on exceptions for control flow.
+**Context:** The application needs a scalable architecture that separates business logic from UI concerns, enabling independent testing and future modifications without cascading changes.
 
-**Decision:** Implement a sealed `Result<T>` class with `Success<T>` and `Failure` variants, supporting functional operations (`fold`, `map`, `getOrElse`).
+**Decision:** Implement Clean Architecture with three distinct layers (Presentation, Domain, Data) where dependencies point inward. Business logic resides in the Domain layer through Use Cases, completely decoupled from UI and framework-specific code.
 
 **Rationale:**
-- Compile-time exhaustiveness checking via sealed classes
-- No external dependencies required
-- Forces explicit error handling at call sites
-- Supports typed failure categories for granular error handling
+- Business logic remains testable without UI framework dependencies
+- Each layer has a single responsibility and clear boundaries
+- Domain layer defines interfaces; outer layers provide implementations
+- Supports future platform expansion (web, desktop) without rewriting core logic
 
-**Consequences:** All repository methods and use cases return `Result<T>`, making error paths explicit and testable.
+**Consequences:** All features follow the layered structure with entities, use cases, and repository contracts in Domain; DTOs, data sources, and repository implementations in Data; and state management with UI components in Presentation.
 
 ---
 
-### ADR-002: State Management Approach
+### Prompt #2: BLoC Pattern with Cubit
 
 **Context:** The application requires reactive UI updates based on asynchronous operations with support for loading, success, and error states.
 
-**Decision:** Use a lightweight state management solution with method-based actions rather than event-driven patterns.
+**Decision:** Implement state management using the BLoC pattern with Cubit, a lightweight variant that uses method-based actions rather than event streams. States are immutable classes extending Equatable for predictable rebuilds.
 
 **Rationale:**
-- Reduced boilerplate compared to event-driven alternatives
+- Cubit reduces boilerplate compared to full BLoC event-driven approach
 - Direct method calls provide better IDE support (autocomplete, refactoring)
-- State classes remain simple data containers
-- Easier onboarding for new team members
+- Immutable states with `copyWith` ensure predictable state transitions
+- Built-in support for `BlocBuilder`, `BlocListener`, and `BlocSelector` for fine-grained UI updates
 
-**Consequences:** Business logic validation moved to state management layer, keeping UI components stateless and focused on rendering.
+**Consequences:** Business logic validation moved to Cubit layer, keeping UI components stateless and focused on rendering. All state transitions are traceable and testable.
 
 ---
 
-### ADR-003: Optimistic UI Updates
+### Prompt #3: Core Features Implementation
 
-**Context:** Drag-and-drop reordering requires immediate visual feedback; waiting for persistence creates perceptible lag.
+**Context:** The application requires two core features with specific architectural and persistence requirements.
 
-**Decision:** Update UI state immediately upon user action, then persist asynchronously. Revert state if persistence fails.
+**Decision:** Implement both features following Clean Architecture:
+
+**A. The Login Screen (Simulated Auth)**
+- Implement a Login page with simulated asynchronous authentication (add a fake delay of 1-2 seconds)
+- Architecture: Use a proper Repository pattern to abstract the authentication logic
+- Error Handling: Handle timeouts or "wrong password" errors gracefully with proper UI feedback (snackbar notifications)
+- Persistence: The user session should persist. If the app restarts after logging in, it should go straight to the Home page
+
+**B. The Homepage (Persistent Movable Widgets)**
+- The Dashboard: Render a grid or list of "Smart Widgets" (e.g., Weather Card, Stock Ticker, News Summary, Calendar, Quick Notes)
+- Interaction: Users must be able to drag and drop to reorder these widgets
+- Persistence: The new order of the widgets must be saved locally using SQLite. If the list is reordered and the app restarts, the order must be preserved
+- AI Requirement: Use AI to generate the boilerplate for the widget models and the card layout logic
 
 **Rationale:**
-- Maintains 60fps interaction responsiveness
+- Simulated delay provides realistic async UX without backend dependency
+- Repository abstraction enables easy swap to real API in production
+- SQLite chosen over SharedPreferences for relational data and complex queries
+- `ReorderableListView` provides native Flutter drag-and-drop with minimal custom code
+
+**Consequences:** `AuthCubit` manages login state with `checkAuthStatus()` on app launch to restore sessions. `DashboardCubit` loads widgets in persisted order and saves new order on every reorder action. Test credentials: `test@example.com` / `password123`.
+
+---
+
+### Prompt #4: Responsive Drag-and-Drop Reordering
+
+**Context:** Drag-and-drop reordering requires immediate visual feedback; waiting for persistence creates perceptible lag that degrades user experience.
+
+**Decision:** Implement optimistic UI updates where state changes are emitted immediately upon user action, then persisted asynchronously. If persistence fails, state reverts to the original order.
+
+**Rationale:**
+- Maintains 60fps interaction responsiveness during drag operations
 - Aligns with user expectations from native applications
 - Failure case (revert) is rare and acceptable trade-off
+- Provides instant feedback while ensuring data consistency
 
-**Consequences:** State management must track both optimistic state and original state for potential rollback.
-
----
-
-### ADR-004: Repository Pattern
-
-**Context:** Data access logic needs abstraction to support testing, multiple data sources, and potential future changes to storage mechanisms.
-
-**Decision:** Define repository interfaces in the domain layer; implement concrete repositories in the data layer.
-
-**Rationale:**
-- Domain layer remains independent of data access details
-- Easy substitution of mock repositories for testing
-- Supports composition of multiple data sources (local + remote)
-- Clear contract for data operations
-
-**Consequences:** Additional interface definitions required, but provides flexibility and testability benefits.
+**Consequences:** State management must track both optimistic state and original state for potential rollback. The `DashboardCubit` emits a `reordering` state before async persistence completes.
 
 ---
 
-### ADR-005: Atomic Design System
+### Prompt #5: Repository Pattern with SQLite Persistence
 
-**Context:** UI components need consistent styling and behavior across the application while remaining maintainable and reusable.
+**Context:** Data access logic needs abstraction to support testing, and the application requires persistent local storage for user sessions and widget configurations.
 
-**Decision:** Organize presentation components following Atomic Design principles (atoms, molecules, organisms).
+**Decision:** Define repository interfaces in the Domain layer; implement concrete repositories in the Data layer using sqflite for SQLite database operations. Data sources handle raw database queries while repositories transform data between domain entities and database models.
 
 **Rationale:**
-- Clear hierarchy of component complexity
-- Promotes composition over inheritance
-- Facilitates design system documentation
+- Domain layer remains independent of storage mechanism (SQLite, SharedPreferences, API)
+- Easy substitution of mock repositories for testing without database setup
+- sqflite provides reliable, transactional local storage with SQL query support
+- Repository abstraction allows future migration to different storage solutions
+
+**Consequences:** `DatabaseHelper` manages SQLite connections and schema. Each feature has a local data source for database operations and a repository that maps between domain entities and data models.
+
+---
+
+### Prompt #6: Design System with Atomic Design & Centralized Theming
+
+**Context:** UI components need consistent styling and behavior across the application while remaining maintainable and reusable. Direct usage of color constants throughout the codebase leads to inconsistency.
+
+**Decision:** Organize presentation components following Atomic Design principles (atoms, molecules, organisms) with a centralized `AppColors` class for all color definitions. Components are exported through a single `ui.dart` barrel file.
+
+**Rationale:**
+- Clear hierarchy of component complexity (atoms → molecules → organisms)
+- Single source of truth for color palette with semantic naming
+- Promotes composition over inheritance for UI building
+- Simplifies theme customization and future dark mode support
 - Enables independent component testing
 
-**Consequences:** Initial setup overhead, but improved maintainability and consistency long-term.
+**Consequences:** All UI elements use design system components and `AppColors`. Direct color constant usage is prohibited in feature widgets, enforced through code review.
 
 ---
 
-### ADR-006: Centralized Color System
-
-**Context:** Direct usage of color constants throughout the codebase leads to inconsistency and makes theme changes difficult.
-
-**Decision:** Define all colors in a single `AppColors` class; prohibit direct color constant usage in widgets.
-
-**Rationale:**
-- Single source of truth for color palette
-- Semantic naming improves code readability
-- Simplifies theme customization and dark mode support
-- Enables compile-time checking for color usage
-
-**Consequences:** Requires discipline to use `AppColors` consistently; enforced through code review.
-
----
-
-### ADR-007: Type-Safe Widget Data
+### Prompt #7: Type-Safe Widget Data
 
 **Context:** Dashboard widgets have different data requirements (weather needs temperature, stocks need price changes, etc.).
 
@@ -368,6 +226,16 @@ This section documents key architectural decisions made during development, prov
 
 ---
 
-## License
+### Prompt #8: Testing Strategy with Mocked Dependencies
 
-MIT License - see LICENSE file for details.
+**Context:** The application requires comprehensive test coverage for business logic, state management, and UI components without depending on real databases or external services.
+
+**Decision:** Implement unit tests using mocktail for dependency mocking and bloc_test for Cubit state verification. Mock implementations replace repositories and use cases during testing, with predefined test data for consistent assertions.
+
+**Rationale:**
+- Mocktail provides simple, type-safe mocking without code generation
+- bloc_test enables declarative testing of state sequences with `expect()` lists
+- Mock data ensures deterministic test results independent of database state
+- Tests run fast without I/O operations or network calls
+
+**Consequences:** Each layer has dedicated tests: domain tests verify use case logic with mocked repositories, presentation tests verify Cubit state transitions with mocked use cases, and widget tests verify UI rendering with mocked Cubits.

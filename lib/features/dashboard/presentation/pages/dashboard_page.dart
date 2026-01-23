@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/presentation/design_system/design_system.dart';
+import '../../../../core/ui/ui.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../widgets/smart_widget_card.dart';

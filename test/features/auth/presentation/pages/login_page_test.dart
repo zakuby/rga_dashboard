@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:rga_dashboard/core/presentation/design_system/design_system.dart';
+import 'package:rga_dashboard/core/ui/ui.dart';
 import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:rga_dashboard/features/auth/presentation/pages/login_page.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/presentation/design_system/design_system.dart';
+import '../../../../core/ui/ui.dart';
 import '../../domain/entities/dashboard_widget.dart';
 
 /// Stock ticker widget card displaying stock prices.

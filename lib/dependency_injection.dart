@@ -16,64 +16,64 @@ import 'features/dashboard/domain/usecases/reorder_widgets_usecase.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 
 /// Global service locator instance.
-final sl = GetIt.instance;
+final getIt = GetIt.instance;
 
 /// Initializes all dependencies.
 Future<void> initDependencies() async {
   // ==================== Auth Feature ====================
 
   // Data Sources
-  sl.registerLazySingleton<AuthLocalDataSource>(
+  getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(),
   );
 
-  sl.registerLazySingleton<AuthRemoteDataSource>(
+  getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(),
   );
 
   // Repository
-  sl.registerLazySingleton<AuthRepository>(
+  getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
-      remoteDataSource: sl(),
-      localDataSource: sl(),
+      remoteDataSource: getIt(),
+      localDataSource: getIt(),
     ),
   );
 
   // Use Cases
-  sl.registerLazySingleton(() => LoginUseCase(sl()));
-  sl.registerLazySingleton(() => LogoutUseCase(sl()));
-  sl.registerLazySingleton(() => CheckAuthStatusUseCase(sl()));
+  getIt.registerLazySingleton(() => LoginUseCase(getIt()));
+  getIt.registerLazySingleton(() => LogoutUseCase(getIt()));
+  getIt.registerLazySingleton(() => CheckAuthStatusUseCase(getIt()));
 
   // Cubit
-  sl.registerFactory(
+  getIt.registerFactory(
     () => AuthCubit(
-      loginUseCase: sl(),
-      logoutUseCase: sl(),
-      checkAuthStatusUseCase: sl(),
+      loginUseCase: getIt(),
+      logoutUseCase: getIt(),
+      checkAuthStatusUseCase: getIt(),
     ),
   );
 
   // ==================== Dashboard Feature ====================
 
   // Data Sources
-  sl.registerLazySingleton<DashboardLocalDataSource>(
+  getIt.registerLazySingleton<DashboardLocalDataSource>(
     () => DashboardLocalDataSourceImpl(),
   );
 
   // Repository
-  sl.registerLazySingleton<DashboardRepository>(
-    () => DashboardRepositoryImpl(localDataSource: sl()),
+  getIt.registerLazySingleton<DashboardRepository>(
+    () => DashboardRepositoryImpl(localDataSource: getIt()),
   );
 
   // Use Cases
-  sl.registerLazySingleton(() => GetWidgetsUseCase(sl()));
-  sl.registerLazySingleton(() => ReorderWidgetsUseCase(sl()));
+  getIt.registerLazySingleton(() => GetWidgetsUseCase(getIt()));
+  getIt.registerLazySingleton(() => ReorderWidgetsUseCase(getIt()));
 
   // Cubit
-  sl.registerFactory(
+  getIt.registerFactory(
     () => DashboardCubit(
-      getWidgetsUseCase: sl(),
-      reorderWidgetsUseCase: sl(),
+      getWidgetsUseCase: getIt(),
+      reorderWidgetsUseCase: getIt(),
     ),
   );
 }
