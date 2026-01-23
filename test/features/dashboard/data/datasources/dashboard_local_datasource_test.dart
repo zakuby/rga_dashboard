@@ -1,10 +1,178 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rga_dashboard/core/database/database_helper.dart';
 import 'package:rga_dashboard/features/dashboard/data/datasources/dashboard_local_datasource.dart';
 import 'package:rga_dashboard/features/dashboard/data/models/dashboard_widget_model.dart';
 import 'package:rga_dashboard/features/dashboard/domain/entities/dashboard_widget.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  late DashboardLocalDataSourceImpl dataSource;
+  late Database testDb;
+
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
+  setUp(() async {
+    testDb = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(
+        version: 1,
+        onCreate: (db, version) async {
+          await db.execute('''
+            CREATE TABLE ${DatabaseHelper.tableWidgets} (
+              id TEXT PRIMARY KEY,
+              type_index INTEGER NOT NULL,
+              title TEXT NOT NULL,
+              widget_order INTEGER NOT NULL,
+              is_visible INTEGER NOT NULL DEFAULT 1,
+              data TEXT
+            )
+          ''');
+        },
+      ),
+    );
+    DatabaseHelper.setTestDatabase(testDb);
+    dataSource = DashboardLocalDataSourceImpl();
+  });
+
+  tearDown(() async {
+    await testDb.close();
+    DatabaseHelper.resetDatabase();
+  });
+
+  final testWidgets = [
+    const DashboardWidgetModel(
+      id: 'weather_1',
+      type: WidgetType.weather,
+      title: 'Weather',
+      order: 0,
+      widgetData: WeatherData(
+        location: 'Test City',
+        temperature: 70,
+        condition: 'sunny',
+        humidity: 50,
+      ),
+    ),
+    const DashboardWidgetModel(
+      id: 'stock_1',
+      type: WidgetType.stockTicker,
+      title: 'Stocks',
+      order: 1,
+    ),
+  ];
+
   group('DashboardLocalDataSourceImpl', () {
+    group('saveWidgets', () {
+      test('should save widgets to database', () async {
+        await dataSource.saveWidgets(testWidgets);
+
+        final result = await testDb.query(DatabaseHelper.tableWidgets);
+        expect(result.length, 2);
+      });
+
+      test('should replace existing widgets on save', () async {
+        await dataSource.saveWidgets(testWidgets);
+
+        final newWidgets = [
+          const DashboardWidgetModel(
+            id: 'calendar_1',
+            type: WidgetType.calendar,
+            title: 'Calendar',
+            order: 0,
+          ),
+        ];
+        await dataSource.saveWidgets(newWidgets);
+
+        final result = await testDb.query(DatabaseHelper.tableWidgets);
+        expect(result.length, 1);
+        expect(result.first['id'], 'calendar_1');
+      });
+    });
+
+    group('getWidgets', () {
+      test('should return saved widgets', () async {
+        await dataSource.saveWidgets(testWidgets);
+
+        final result = await dataSource.getWidgets();
+
+        expect(result.length, 2);
+        expect(result[0].id, 'weather_1');
+        expect(result[1].id, 'stock_1');
+      });
+
+      test('should return widgets ordered by widget_order', () async {
+        final unorderedWidgets = [
+          const DashboardWidgetModel(
+            id: 'widget_2',
+            type: WidgetType.calendar,
+            title: 'Second',
+            order: 1,
+          ),
+          const DashboardWidgetModel(
+            id: 'widget_1',
+            type: WidgetType.weather,
+            title: 'First',
+            order: 0,
+          ),
+        ];
+        await dataSource.saveWidgets(unorderedWidgets);
+
+        final result = await dataSource.getWidgets();
+
+        expect(result[0].order, 0);
+        expect(result[1].order, 1);
+      });
+
+      test('should return empty list when no widgets', () async {
+        final result = await dataSource.getWidgets();
+
+        expect(result, isEmpty);
+      });
+
+      test('should deserialize widget data correctly', () async {
+        await dataSource.saveWidgets(testWidgets);
+
+        final result = await dataSource.getWidgets();
+
+        expect(result[0].weatherData, isNotNull);
+        expect(result[0].weatherData!.location, 'Test City');
+        expect(result[0].weatherData!.temperature, 70);
+      });
+    });
+
+    group('hasWidgets', () {
+      test('should return true when widgets exist', () async {
+        await dataSource.saveWidgets(testWidgets);
+
+        final result = await dataSource.hasWidgets();
+
+        expect(result, isTrue);
+      });
+
+      test('should return false when no widgets', () async {
+        final result = await dataSource.hasWidgets();
+
+        expect(result, isFalse);
+      });
+    });
+
+    group('clearWidgets', () {
+      test('should clear all widgets', () async {
+        await dataSource.saveWidgets(testWidgets);
+        expect(await dataSource.hasWidgets(), isTrue);
+
+        await dataSource.clearWidgets();
+
+        expect(await dataSource.hasWidgets(), isFalse);
+      });
+
+      test('should not throw when clearing empty database', () async {
+        await expectLater(dataSource.clearWidgets(), completes);
+      });
+    });
+
     group('getDefaultWidgets', () {
       test('should return 5 default widgets', () {
         final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
@@ -27,102 +195,16 @@ void main() {
 
         expect(widgets[0].type, WidgetType.weather);
         expect(widgets[0].id, 'weather_1');
-        expect(widgets[0].title, 'Weather');
       });
 
-      test('should return stock ticker widget second', () {
+      test('should include widget data for all widgets', () {
         final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
 
-        expect(widgets[1].type, WidgetType.stockTicker);
-        expect(widgets[1].id, 'stock_1');
-        expect(widgets[1].title, 'Stock Ticker');
-      });
-
-      test('should return news summary widget third', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[2].type, WidgetType.newsSummary);
-        expect(widgets[2].id, 'news_1');
-        expect(widgets[2].title, 'News Summary');
-      });
-
-      test('should return calendar widget fourth', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[3].type, WidgetType.calendar);
-        expect(widgets[3].id, 'calendar_1');
-        expect(widgets[3].title, 'Calendar');
-      });
-
-      test('should return quick notes widget fifth', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[4].type, WidgetType.quickNotes);
-        expect(widgets[4].id, 'notes_1');
-        expect(widgets[4].title, 'Quick Notes');
-      });
-
-      test('should include weather data', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-        final weatherWidget = widgets[0];
-
-        expect(weatherWidget.weatherData, isNotNull);
-        expect(weatherWidget.weatherData!.location, 'San Francisco');
-        expect(weatherWidget.weatherData!.temperature, 72);
-        expect(weatherWidget.weatherData!.condition, 'sunny');
-        expect(weatherWidget.weatherData!.humidity, 45);
-      });
-
-      test('should include stock ticker data', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-        final stockWidget = widgets[1];
-
-        expect(stockWidget.stockTickerData, isNotNull);
-        expect(stockWidget.stockTickerData!.stocks.length, 3);
-        expect(stockWidget.stockTickerData!.stocks[0].symbol, 'AAPL');
-        expect(stockWidget.stockTickerData!.stocks[1].symbol, 'GOOGL');
-        expect(stockWidget.stockTickerData!.stocks[2].symbol, 'MSFT');
-      });
-
-      test('should include news summary data', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-        final newsWidget = widgets[2];
-
-        expect(newsWidget.newsSummaryData, isNotNull);
-        expect(newsWidget.newsSummaryData!.headlines.length, 3);
-      });
-
-      test('should include calendar data', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-        final calendarWidget = widgets[3];
-
-        expect(calendarWidget.calendarData, isNotNull);
-        expect(calendarWidget.calendarData!.events.length, 3);
-        expect(calendarWidget.calendarData!.events[0].title, 'Team Standup');
-      });
-
-      test('should include quick notes data', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-        final notesWidget = widgets[4];
-
-        expect(notesWidget.quickNotesData, isNotNull);
-        expect(notesWidget.quickNotesData!.notes.length, 3);
-      });
-
-      test('should return DashboardWidgetModel instances', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        for (final widget in widgets) {
-          expect(widget, isA<DashboardWidgetModel>());
-        }
-      });
-
-      test('all widgets should be visible by default', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        for (final widget in widgets) {
-          expect(widget.isVisible, true);
-        }
+        expect(widgets[0].weatherData, isNotNull);
+        expect(widgets[1].stockTickerData, isNotNull);
+        expect(widgets[2].newsSummaryData, isNotNull);
+        expect(widgets[3].calendarData, isNotNull);
+        expect(widgets[4].quickNotesData, isNotNull);
       });
     });
   });

@@ -19,6 +19,16 @@ class DatabaseHelper {
     return _database!;
   }
 
+  /// Sets a test database instance (for testing only).
+  static void setTestDatabase(Database db) {
+    _database = db;
+  }
+
+  /// Resets the database instance (for testing only).
+  static void resetDatabase() {
+    _database = null;
+  }
+
   static Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _databaseName);
