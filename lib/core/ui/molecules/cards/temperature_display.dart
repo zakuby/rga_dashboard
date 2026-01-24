@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../atoms/text/temperature_text.dart';
+import '../../theme/app_spacing.dart';
 
 /// Temperature display molecule with large temp and condition label.
 class TemperatureDisplay extends StatelessWidget {
@@ -24,9 +25,9 @@ class TemperatureDisplay extends StatelessWidget {
       children: [
         TemperatureText(temperature: temperature, unit: unit),
         if (condition != null) ...[
-          const SizedBox(width: 8),
+          AppSpacing.gapHorizontalSm,
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: Text(
               condition!.toUpperCase(),
               style: theme.textTheme.bodySmall,

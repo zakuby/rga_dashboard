@@ -4,7 +4,7 @@ import '../../../../core/ui/ui.dart';
 import '../../domain/entities/dashboard_widget.dart';
 
 /// Quick notes widget card displaying notes list.
-/// Uses atomic design components: BaseCard, CardHeader, CheckboxListItem.
+/// Uses atomic design components: BaseCard, CardHeader, BulletListItem.
 class QuickNotesCard extends StatelessWidget {
   final DashboardWidget widget;
 
@@ -32,20 +32,11 @@ class QuickNotesCard extends StatelessWidget {
             icon: Icons.sticky_note_2,
             iconColor: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.notes.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: CheckboxListItem(
-                    text: data.notes[index],
-                    isChecked: false,
-                  ),
-                );
-              },
+          AppSpacing.gapVerticalMd,
+          ...data.notes.map(
+            (note) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: BulletListItem(text: note),
             ),
           ),
         ],
@@ -67,7 +58,8 @@ class QuickNotesCard extends StatelessWidget {
             icon: Icons.sticky_note_2,
             iconColor: theme.colorScheme.onSurfaceVariant,
           ),
-          const Expanded(child: Center(child: Text('No notes yet'))),
+          AppSpacing.gapVerticalXl,
+          const Center(child: Text('No notes yet')),
         ],
       ),
     );

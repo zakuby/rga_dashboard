@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:rga_dashboard/core/result/result.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
 /// App snackbar helper for showing consistent notifications.
 class AppSnackbar {
@@ -20,7 +21,7 @@ class AppSnackbar {
         content: Row(
           children: [
             Icon(icon, color: theme.colorScheme.onError),
-            const SizedBox(width: 12),
+            AppSpacing.gapHorizontalMd,
             Expanded(child: Text(message)),
           ],
         ),
@@ -44,7 +45,7 @@ class AppSnackbar {
         content: Row(
           children: [
             Icon(Icons.check_circle, color: theme.colorScheme.onPrimary),
-            const SizedBox(width: 12),
+            AppSpacing.gapHorizontalMd,
             Expanded(child: Text(message)),
           ],
         ),
@@ -68,7 +69,7 @@ class AppSnackbar {
         content: Row(
           children: [
             Icon(Icons.info, color: theme.colorScheme.onPrimaryContainer),
-            const SizedBox(width: 12),
+            AppSpacing.gapHorizontalMd,
             Expanded(child: Text(message)),
           ],
         ),

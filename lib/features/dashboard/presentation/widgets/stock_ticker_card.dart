@@ -32,21 +32,16 @@ class StockTickerCard extends StatelessWidget {
             icon: Icons.show_chart,
             iconColor: theme.colorScheme.secondary,
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.separated(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.stocks.length,
-              separatorBuilder: (_, __) => const Divider(height: 8),
-              itemBuilder: (context, index) {
-                final stock = data.stocks[index];
-                return StockListItem(
-                  symbol: stock.symbol,
-                  price: stock.price,
-                  change: stock.change,
-                );
-              },
-            ),
+          AppSpacing.gapVerticalMd,
+          ...data.stocks.asMap().entries.expand(
+            (entry) => [
+              if (entry.key > 0) const Divider(height: AppSpacing.sm),
+              StockListItem(
+                symbol: entry.value.symbol,
+                price: entry.value.price,
+                change: entry.value.change,
+              ),
+            ],
           ),
         ],
       ),
@@ -67,7 +62,8 @@ class StockTickerCard extends StatelessWidget {
             icon: Icons.show_chart,
             iconColor: theme.colorScheme.secondary,
           ),
-          const Expanded(child: Center(child: Text('No stock data available'))),
+          AppSpacing.gapVerticalXl,
+          const Center(child: Text('No stock data available')),
         ],
       ),
     );

@@ -24,7 +24,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   @override
   Future<List<DashboardWidgetModel>> fetchWidgets() async {
     // Simulate network delay
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
 
     final response = await _jsonLoader.load(_dashboardSuccessPath);
 

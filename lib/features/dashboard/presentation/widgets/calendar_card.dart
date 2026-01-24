@@ -32,22 +32,15 @@ class CalendarCard extends StatelessWidget {
             icon: Icons.calendar_today,
             iconColor: theme.colorScheme.error,
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.events.length,
-              itemBuilder: (context, index) {
-                final event = data.events[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: EventListItem(
-                    title: event.title,
-                    subtitle: event.time,
-                    borderColor: theme.colorScheme.error,
-                  ),
-                );
-              },
+          AppSpacing.gapVerticalMd,
+          ...data.events.map(
+            (event) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: EventListItem(
+                title: event.title,
+                subtitle: event.time,
+                borderColor: theme.colorScheme.error,
+              ),
             ),
           ),
         ],
@@ -69,7 +62,8 @@ class CalendarCard extends StatelessWidget {
             icon: Icons.calendar_today,
             iconColor: theme.colorScheme.error,
           ),
-          const Expanded(child: Center(child: Text('No events scheduled'))),
+          AppSpacing.gapVerticalXl,
+          const Center(child: Text('No events scheduled')),
         ],
       ),
     );

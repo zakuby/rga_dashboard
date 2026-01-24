@@ -2,17 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/ui/ui.dart';
+import '../../../../injection.dart';
 import '../cubit/auth_cubit.dart';
+import '../cubit/login_cubit.dart';
 
 /// Login page with email/password authentication.
-class LoginPage extends StatefulWidget {
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<LoginCubit>(),
+      child: const _LoginPageContent(),
+    );
+  }
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageContent extends StatefulWidget {
+  const _LoginPageContent();
+
+  @override
+  State<_LoginPageContent> createState() => _LoginPageContentState();
+}
+
+class _LoginPageContentState extends State<_LoginPageContent> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -25,14 +39,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onLoginPressed() {
-    context.read<AuthCubit>().login(
+    context.read<LoginCubit>().login(
       email: _emailController.text,
       password: _passwordController.text,
     );
   }
 
   void _onInputChanged() {
-    context.read<AuthCubit>().clearValidationErrors();
+    context.read<LoginCubit>().clearErrors();
   }
 
   @override
@@ -40,20 +54,26 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: BlocListener<AuthCubit, AuthState>(
+      body: BlocListener<LoginCubit, LoginState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.failure) {
+          if (state.isSuccess) {
+            // Trigger auth check to navigate to dashboard
+            context.read<AuthCubit>().checkAuthStatus();
+          } else if (state.hasError) {
             AppSnackbar.showError(
               context,
-              message: state.errorMessage ?? 'An error occurred',
+              message: state.errorMessage!,
               failureType: state.failureType,
             );
           }
         },
+        listenWhen: (previous, current) =>
+            (!previous.isSuccess && current.isSuccess) ||
+            (!previous.hasError && current.hasError),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: AppSpacing.paddingXl,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
                 child: Column(
@@ -66,13 +86,13 @@ class _LoginPageState extends State<LoginPage> {
                       title: 'Welcome Back',
                       subtitle: 'Sign in to access your dashboard',
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: AppSpacing.xxxl),
                     _buildEmailField(),
-                    const SizedBox(height: 16),
+                    AppSpacing.gapVerticalLg,
                     _buildPasswordField(),
-                    const SizedBox(height: 24),
+                    AppSpacing.gapVerticalXl,
                     _buildLoginButton(),
-                    const SizedBox(height: 16),
+                    AppSpacing.gapVerticalLg,
                     _buildHintText(theme),
                   ],
                 ),
@@ -85,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildEmailField() {
-    return BlocSelector<AuthCubit, AuthState, String?>(
+    return BlocSelector<LoginCubit, LoginState, String?>(
       selector: (state) => state.emailError,
       builder: (context, emailError) {
         return AppTextField(
@@ -104,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildPasswordField() {
-    return BlocSelector<AuthCubit, AuthState, String?>(
+    return BlocSelector<LoginCubit, LoginState, String?>(
       selector: (state) => state.passwordError,
       builder: (context, passwordError) {
         return AppTextField.password(
@@ -128,11 +148,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginButton() {
-    return BlocBuilder<AuthCubit, AuthState>(
-      buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) {
-        final isLoading = state.status == AuthStatus.loading;
-
+    return BlocSelector<LoginCubit, LoginState, bool>(
+      selector: (state) => state.isLoading,
+      builder: (context, isLoading) {
         return SizedBox(
           height: 48,
           child: PrimaryButton(

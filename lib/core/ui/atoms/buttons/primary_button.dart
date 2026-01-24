@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
 /// Primary button atom - the main call-to-action button style.
 class PrimaryButton extends StatelessWidget {
@@ -37,7 +38,7 @@ class PrimaryButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 18),
-                const SizedBox(width: 8),
+                AppSpacing.gapHorizontalSm,
                 Text(label),
               ],
             )

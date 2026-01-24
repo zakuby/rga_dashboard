@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/theme/theme_cubit.dart';
 import 'core/ui/theme/app_colors.dart';
+import 'core/ui/theme/app_spacing.dart';
+import 'core/ui/theme/app_typography.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
@@ -25,41 +28,57 @@ class RgaDashboardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<ThemeCubit>(create: (_) => getIt<ThemeCubit>()),
         BlocProvider<AuthCubit>(
           create: (_) => getIt<AuthCubit>()..checkAuthStatus(),
         ),
         BlocProvider<DashboardCubit>(create: (_) => getIt<DashboardCubit>()),
       ],
-      child: MaterialApp(
-        title: 'RGA Dashboard',
-        debugShowCheckedModeBanner: false,
-        theme: _buildLightTheme(),
-        darkTheme: _buildDarkTheme(),
-        themeMode: ThemeMode.system,
-        home: const AuthGate(),
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'RGA Dashboard',
+            debugShowCheckedModeBanner: false,
+            theme: _buildLightTheme(),
+            darkTheme: _buildDarkTheme(),
+            themeMode: themeMode,
+            home: const AuthGate(),
+          );
+        },
       ),
     );
   }
 
   ThemeData _buildLightTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      textTheme: AppTypography.textTheme.apply(
+        bodyColor: colorScheme.onSurface,
+        displayColor: colorScheme.onSurface,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(borderRadius: AppSpacing.borderRadiusLg),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppSpacing.borderRadiusLg,
           ),
         ),
       ),
@@ -67,24 +86,35 @@ class RgaDashboardApp extends StatelessWidget {
   }
 
   ThemeData _buildDarkTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      textTheme: AppTypography.textTheme.apply(
+        bodyColor: colorScheme.onSurface,
+        displayColor: colorScheme.onSurface,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(borderRadius: AppSpacing.borderRadiusLg),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppSpacing.borderRadiusLg,
           ),
         ),
       ),
@@ -98,22 +128,14 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        // Load dashboard widgets when authenticated
-        if (state.status == AuthStatus.authenticated) {
-          context.read<DashboardCubit>().loadWidgets();
-        }
-      },
-      buildWhen: (previous, current) => previous.status != current.status,
+    return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return switch (state.status) {
           AuthStatus.initial || AuthStatus.loading => const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           ),
           AuthStatus.authenticated => const DashboardPage(),
-          AuthStatus.unauthenticated || AuthStatus.failure => const LoginPage(),
+          AuthStatus.unauthenticated => const LoginPage(),
         };
       },
     );

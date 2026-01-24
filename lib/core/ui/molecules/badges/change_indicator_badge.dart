@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
 
 /// Change indicator badge molecule for stock price changes.
 /// Shows positive (green) or negative (red) change with arrow.
@@ -28,10 +30,13 @@ class ChangeIndicatorBadge extends StatelessWidget {
     final percent = showPercentSign ? '%' : '';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs + AppSpacing.xxs,
+        vertical: AppSpacing.xxs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppSpacing.borderRadiusSm,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -41,8 +46,8 @@ class ChangeIndicatorBadge extends StatelessWidget {
             '$sign${change.toStringAsFixed(1)}$percent',
             style: TextStyle(
               color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontWeight: AppTypography.weightBold,
+              fontSize: AppTypography.fontSizeSm,
             ),
           ),
         ],

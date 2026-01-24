@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
+
 /// Page header molecule with icon, title, and subtitle.
 /// Used in login page and other form pages.
 class PageHeader extends StatelessWidget {
@@ -29,15 +32,15 @@ class PageHeader extends StatelessWidget {
           size: iconSize,
           color: iconColor ?? theme.colorScheme.primary,
         ),
-        const SizedBox(height: 16),
+        AppSpacing.gapVerticalLg,
         Text(
           title,
           style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: AppTypography.weightBold,
           ),
         ),
         if (subtitle != null) ...[
-          const SizedBox(height: 8),
+          AppSpacing.gapVerticalSm,
           Text(
             subtitle!,
             style: theme.textTheme.bodyLarge?.copyWith(

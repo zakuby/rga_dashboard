@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+
 /// Bullet list item molecule for simple text lists.
 /// Used in news summary card.
 class BulletListItem extends StatelessWidget {
@@ -27,12 +29,12 @@ class BulletListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 6),
+          margin: const EdgeInsets.only(top: AppSpacing.xs),
           width: bulletSize,
           height: bulletSize,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 8),
+        AppSpacing.gapHorizontalSm,
         Expanded(
           child: Text(
             text,

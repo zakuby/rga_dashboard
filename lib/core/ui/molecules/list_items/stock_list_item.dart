@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
 import '../badges/change_indicator_badge.dart';
 
 /// Stock list item molecule displaying symbol, price, and change.
@@ -29,7 +31,7 @@ class StockListItem extends StatelessWidget {
         Text(
           symbol,
           style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: AppTypography.weightBold,
           ),
         ),
         Row(
@@ -38,7 +40,7 @@ class StockListItem extends StatelessWidget {
               '$currencySymbol${price.toStringAsFixed(2)}',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(width: 8),
+            AppSpacing.gapHorizontalSm,
             ChangeIndicatorBadge(
               change: change,
               showPercentSign: showPercentSign,

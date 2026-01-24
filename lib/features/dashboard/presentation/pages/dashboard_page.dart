@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/ui/ui.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../widgets/smart_widget_card.dart';
 
 /// Main dashboard page with draggable widget grid.
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<DashboardCubit>().loadWidgets();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +30,7 @@ class DashboardPage extends StatelessWidget {
         builder: (context, state) {
           return switch (state.status) {
             DashboardStatus.initial ||
-            DashboardStatus.loading => const LoadingView(),
+            DashboardStatus.loading => const SkeletonLoadingView(),
             DashboardStatus.failure => ErrorStateView(
               message: state.errorMessage ?? 'An error occurred',
               onRetry: () {
@@ -34,32 +46,43 @@ class DashboardPage extends StatelessWidget {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final theme = Theme.of(context);
+    final themeCubit = context.watch<ThemeCubit>();
+    final isDark = themeCubit.isDarkMode(context);
 
     return AppBar(
-      title: const Text('Dashboard'),
+      title: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          final name = state.user?.name ?? 'User';
+          return Text('Hi, $name');
+        },
+      ),
       centerTitle: false,
       actions: [
-        BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, state) {
-            return Row(
-              children: [
-                if (state.user != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Text(
-                      state.user!.name,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.logout),
-                  tooltip: 'Logout',
-                  onPressed: () => _showLogoutConfirmation(context),
-                ),
-              ],
-            );
-          },
+        Row(
+          children: [
+            Icon(
+              Icons.light_mode,
+              size: 18,
+              color: isDark ? null : Colors.amber,
+            ),
+            Transform.scale(
+              scale: 0.8,
+              child: Switch(
+                value: isDark,
+                onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+              ),
+            ),
+            Icon(
+              Icons.dark_mode,
+              size: 18,
+              color: isDark ? Colors.deepPurple.shade300 : null,
+            ),
+          ],
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'Logout',
+          onPressed: () => _showLogoutConfirmation(context),
         ),
       ],
     );
@@ -82,7 +105,7 @@ class DashboardPage extends StatelessWidget {
             : 1;
 
         return ReorderableListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.pagePadding,
           itemCount: widgets.length,
           onReorder: (oldIndex, newIndex) {
             context.read<DashboardCubit>().reorderWidgets(oldIndex, newIndex);
@@ -91,13 +114,12 @@ class DashboardPage extends StatelessWidget {
             return AnimatedBuilder(
               animation: animation,
               builder: (context, child) {
-                final elevation = Tween<double>(begin: 0, end: 8).evaluate(
+                final scale = Tween<double>(begin: 1, end: 1.02).evaluate(
                   CurvedAnimation(parent: animation, curve: Curves.easeInOut),
                 );
-                return Material(
-                  elevation: elevation,
-                  borderRadius: BorderRadius.circular(12),
-                  child: child,
+                return Transform.scale(
+                  scale: scale,
+                  child: Opacity(opacity: 0.9, child: child),
                 );
               },
               child: child,
@@ -145,8 +167,8 @@ class _DraggableWidgetItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: SizedBox(height: 180, child: SmartWidgetCard(widget: widget)),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: SmartWidgetCard(widget: widget),
     );
   }
 }

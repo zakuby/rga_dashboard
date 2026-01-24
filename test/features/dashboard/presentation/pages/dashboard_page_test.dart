@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:rga_dashboard/core/theme/theme_cubit.dart';
 import 'package:rga_dashboard/features/auth/domain/entities/user.dart';
 import 'package:rga_dashboard/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:rga_dashboard/features/dashboard/domain/entities/dashboard_widget.dart';
@@ -14,9 +15,15 @@ class MockDashboardCubit extends MockCubit<DashboardState>
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
+class MockThemeCubit extends MockCubit<ThemeMode> implements ThemeCubit {
+  @override
+  bool isDarkMode(BuildContext context) => state == ThemeMode.dark;
+}
+
 void main() {
   late MockDashboardCubit mockDashboardCubit;
   late MockAuthCubit mockAuthCubit;
+  late MockThemeCubit mockThemeCubit;
 
   final sampleWidgets = [
     const DashboardWidget(
@@ -49,17 +56,21 @@ void main() {
   setUp(() {
     mockDashboardCubit = MockDashboardCubit();
     mockAuthCubit = MockAuthCubit();
+    mockThemeCubit = MockThemeCubit();
 
     when(() => mockDashboardCubit.state).thenReturn(DashboardState.initial());
+    when(() => mockDashboardCubit.loadWidgets()).thenAnswer((_) async {});
     when(
       () => mockAuthCubit.state,
     ).thenReturn(AuthState.authenticated(testUser));
+    when(() => mockThemeCubit.state).thenReturn(ThemeMode.light);
   });
 
   Widget createTestWidget() {
     return MaterialApp(
       home: MultiBlocProvider(
         providers: [
+          BlocProvider<ThemeCubit>.value(value: mockThemeCubit),
           BlocProvider<DashboardCubit>.value(value: mockDashboardCubit),
           BlocProvider<AuthCubit>.value(value: mockAuthCubit),
         ],
@@ -69,24 +80,27 @@ void main() {
   }
 
   group('DashboardPage', () {
-    testWidgets('renders loading view when state is initial or loading', (
+    testWidgets('renders skeleton loading view when state is loading', (
       tester,
     ) async {
       when(() => mockDashboardCubit.state).thenReturn(DashboardState.loading());
       await tester.pumpWidget(createTestWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // SkeletonLoadingView contains multiple SkeletonCard widgets
+      expect(find.byType(ListView), findsOneWidget);
     });
 
     testWidgets('renders error view when state is failure', (tester) async {
       when(
         () => mockDashboardCubit.state,
       ).thenReturn(DashboardState.failure('Test error'));
-      when(() => mockDashboardCubit.loadWidgets()).thenAnswer((_) async {});
 
       await tester.pumpWidget(createTestWidget());
 
       expect(find.text('Test error'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
+
+      // Clear the call from initState before testing retry
+      clearInteractions(mockDashboardCubit);
 
       await tester.tap(find.text('Retry'));
       await tester.pump();
@@ -101,8 +115,7 @@ void main() {
       await tester.pumpWidget(createTestWidget());
 
       expect(find.byType(ReorderableListView), findsOneWidget);
-      expect(find.text('Dashboard'), findsOneWidget);
-      expect(find.text('Test User'), findsOneWidget);
+      expect(find.text('Hi, Test User'), findsOneWidget);
     });
 
     testWidgets('renders empty message when no widgets', (tester) async {
@@ -151,6 +164,160 @@ void main() {
       await tester.pumpAndSettle();
 
       verifyNever(() => mockAuthCubit.logout());
+    });
+
+    testWidgets('displays default user name when no user', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(() => mockAuthCubit.state).thenReturn(AuthState.unauthenticated());
+
+      await tester.pumpWidget(createTestWidget());
+
+      expect(find.text('Hi, User'), findsOneWidget);
+    });
+
+    testWidgets('theme toggle switch is displayed', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+
+      await tester.pumpWidget(createTestWidget());
+
+      expect(find.byType(Switch), findsOneWidget);
+      expect(find.byIcon(Icons.light_mode), findsOneWidget);
+      expect(find.byIcon(Icons.dark_mode), findsOneWidget);
+    });
+
+    testWidgets('theme toggle calls toggleTheme', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(() => mockThemeCubit.toggleTheme()).thenReturn(null);
+
+      await tester.pumpWidget(createTestWidget());
+
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+
+      verify(() => mockThemeCubit.toggleTheme()).called(1);
+    });
+
+    testWidgets('reorder widgets calls reorderWidgets', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(
+        () => mockDashboardCubit.reorderWidgets(any(), any()),
+      ).thenAnswer((_) async {});
+
+      await tester.pumpWidget(createTestWidget());
+
+      // Find the ReorderableListView
+      expect(find.byType(ReorderableListView), findsOneWidget);
+
+      // Simulate drag from index 0 to index 1
+      final firstItem = find.byKey(const ValueKey('widget-1'));
+      expect(firstItem, findsOneWidget);
+
+      // Perform long press drag
+      final gesture = await tester.startGesture(tester.getCenter(firstItem));
+      await tester.pump(const Duration(milliseconds: 500));
+      await gesture.moveBy(const Offset(0, 200));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      verify(() => mockDashboardCubit.reorderWidgets(any(), any())).called(1);
+    });
+
+    testWidgets('reordering state still shows widgets', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.reordering(sampleWidgets));
+
+      await tester.pumpWidget(createTestWidget());
+
+      expect(find.byType(ReorderableListView), findsOneWidget);
+    });
+
+    testWidgets('initial state renders skeleton loading', (tester) async {
+      when(() => mockDashboardCubit.state).thenReturn(DashboardState.initial());
+
+      await tester.pumpWidget(createTestWidget());
+
+      expect(find.byType(ListView), findsOneWidget);
+    });
+
+    testWidgets('logout button has tooltip', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+
+      await tester.pumpWidget(createTestWidget());
+
+      final logoutButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.logout),
+      );
+      expect(logoutButton.tooltip, 'Logout');
+    });
+
+    testWidgets('logout dialog has correct title', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+
+      await tester.pumpWidget(createTestWidget());
+
+      await tester.tap(find.byIcon(Icons.logout));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Logout'), findsWidgets);
+    });
+
+    testWidgets('uses default error message when errorMessage is null', (
+      tester,
+    ) async {
+      when(() => mockDashboardCubit.state).thenReturn(
+        const DashboardState(
+          status: DashboardStatus.failure,
+          errorMessage: null,
+        ),
+      );
+
+      await tester.pumpWidget(createTestWidget());
+
+      expect(find.text('An error occurred'), findsOneWidget);
+    });
+
+    testWidgets('loads widgets on init', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+
+      verify(() => mockDashboardCubit.loadWidgets()).called(1);
+    });
+
+    testWidgets('switch shows correct state in light mode', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(() => mockThemeCubit.state).thenReturn(ThemeMode.light);
+
+      await tester.pumpWidget(createTestWidget());
+
+      final switchWidget = tester.widget<Switch>(find.byType(Switch));
+      expect(switchWidget.value, isFalse);
+    });
+
+    testWidgets('switch shows correct state in dark mode', (tester) async {
+      when(
+        () => mockDashboardCubit.state,
+      ).thenReturn(DashboardState.loaded(sampleWidgets));
+      when(() => mockThemeCubit.state).thenReturn(ThemeMode.dark);
+
+      await tester.pumpWidget(createTestWidget());
+
+      final switchWidget = tester.widget<Switch>(find.byType(Switch));
+      expect(switchWidget.value, isTrue);
     });
   });
 }

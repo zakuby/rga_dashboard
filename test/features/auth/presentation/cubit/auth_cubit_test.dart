@@ -4,11 +4,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/auth/domain/entities/user.dart';
 import 'package:rga_dashboard/features/auth/domain/usecases/check_auth_status_usecase.dart';
-import 'package:rga_dashboard/features/auth/domain/usecases/login_usecase.dart';
 import 'package:rga_dashboard/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:rga_dashboard/features/auth/presentation/cubit/auth_cubit.dart';
-
-class MockLoginUseCase extends Mock implements LoginUseCase {}
 
 class MockLogoutUseCase extends Mock implements LogoutUseCase {}
 
@@ -17,7 +14,6 @@ class MockCheckAuthStatusUseCase extends Mock
 
 void main() {
   late AuthCubit authCubit;
-  late MockLoginUseCase mockLoginUseCase;
   late MockLogoutUseCase mockLogoutUseCase;
   late MockCheckAuthStatusUseCase mockCheckAuthStatusUseCase;
 
@@ -29,19 +25,13 @@ void main() {
   );
 
   setUp(() {
-    mockLoginUseCase = MockLoginUseCase();
     mockLogoutUseCase = MockLogoutUseCase();
     mockCheckAuthStatusUseCase = MockCheckAuthStatusUseCase();
 
     authCubit = AuthCubit(
-      loginUseCase: mockLoginUseCase,
       logoutUseCase: mockLogoutUseCase,
       checkAuthStatusUseCase: mockCheckAuthStatusUseCase,
     );
-  });
-
-  setUpAll(() {
-    registerFallbackValue(const LoginParams(email: '', password: ''));
   });
 
   tearDown(() {
@@ -77,121 +67,23 @@ void main() {
         act: (cubit) => cubit.checkAuthStatus(),
         expect: () => [AuthState.loading(), AuthState.unauthenticated()],
       );
-    });
-
-    group('login validation', () {
-      blocTest<AuthCubit, AuthState>(
-        'emits validation error for empty email',
-        build: () => authCubit,
-        act: (cubit) => cubit.login(email: '', password: 'password123'),
-        expect: () => [
-          AuthState.validationError(emailError: 'Please enter your email'),
-        ],
-      );
 
       blocTest<AuthCubit, AuthState>(
-        'emits validation error for invalid email format',
-        build: () => authCubit,
-        act: (cubit) =>
-            cubit.login(email: 'invalid-email', password: 'password123'),
-        expect: () => [
-          AuthState.validationError(emailError: 'Please enter a valid email'),
-        ],
-      );
-
-      blocTest<AuthCubit, AuthState>(
-        'emits validation error for empty password',
-        build: () => authCubit,
-        act: (cubit) => cubit.login(email: 'test@example.com', password: ''),
-        expect: () => [
-          AuthState.validationError(
-            passwordError: 'Please enter your password',
-          ),
-        ],
-      );
-
-      blocTest<AuthCubit, AuthState>(
-        'emits validation error for short password',
-        build: () => authCubit,
-        act: (cubit) =>
-            cubit.login(email: 'test@example.com', password: '12345'),
-        expect: () => [
-          AuthState.validationError(
-            passwordError: 'Password must be at least 6 characters',
-          ),
-        ],
-      );
-    });
-
-    group('login', () {
-      blocTest<AuthCubit, AuthState>(
-        'emits [loading, authenticated] when login succeeds',
+        'emits [loading, unauthenticated] when check fails',
         build: () {
           when(
-            () => mockLoginUseCase(any()),
-          ).thenAnswer((_) async => Success(testUser));
+            () => mockCheckAuthStatusUseCase(),
+          ).thenAnswer((_) async => const Failure('Error'));
           return authCubit;
         },
-        act: (cubit) =>
-            cubit.login(email: 'test@example.com', password: 'password123'),
-        expect: () => [AuthState.loading(), AuthState.authenticated(testUser)],
-        verify: (_) {
-          verify(
-            () => mockLoginUseCase(
-              const LoginParams(
-                email: 'test@example.com',
-                password: 'password123',
-              ),
-            ),
-          ).called(1);
-        },
-      );
-
-      blocTest<AuthCubit, AuthState>(
-        'emits [loading, failure] when login fails',
-        build: () {
-          when(() => mockLoginUseCase(any())).thenAnswer(
-            (_) async => const Failure(
-              'Invalid email or password',
-              type: FailureType.authentication,
-            ),
-          );
-          return authCubit;
-        },
-        act: (cubit) =>
-            cubit.login(email: 'test@example.com', password: 'wrong123'),
-        expect: () => [
-          AuthState.loading(),
-          AuthState.failure(
-            message: 'Invalid email or password',
-            type: FailureType.authentication,
-          ),
-        ],
-      );
-    });
-
-    group('clearValidationErrors', () {
-      blocTest<AuthCubit, AuthState>(
-        'clears validation errors when called',
-        build: () => authCubit,
-        seed: () =>
-            AuthState.validationError(emailError: 'Please enter your email'),
-        act: (cubit) => cubit.clearValidationErrors(),
-        expect: () => [const AuthState(status: AuthStatus.unauthenticated)],
-      );
-
-      blocTest<AuthCubit, AuthState>(
-        'does nothing when no validation errors',
-        build: () => authCubit,
-        seed: () => AuthState.unauthenticated(),
-        act: (cubit) => cubit.clearValidationErrors(),
-        expect: () => [],
+        act: (cubit) => cubit.checkAuthStatus(),
+        expect: () => [AuthState.loading(), AuthState.unauthenticated()],
       );
     });
 
     group('logout', () {
       blocTest<AuthCubit, AuthState>(
-        'emits [loading, unauthenticated] when logout succeeds',
+        'emits [unauthenticated] when logout is called',
         build: () {
           when(
             () => mockLogoutUseCase(),
@@ -199,30 +91,45 @@ void main() {
           return authCubit;
         },
         act: (cubit) => cubit.logout(),
-        expect: () => [AuthState.loading(), AuthState.unauthenticated()],
+        expect: () => [AuthState.unauthenticated()],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'emits [unauthenticated] even when logout fails',
+        build: () {
+          when(
+            () => mockLogoutUseCase(),
+          ).thenAnswer((_) async => const Failure('Error'));
+          return authCubit;
+        },
+        act: (cubit) => cubit.logout(),
+        expect: () => [AuthState.unauthenticated()],
       );
     });
   });
 
   group('AuthState', () {
-    test('hasValidationErrors returns true when errors exist', () {
-      final state = AuthState.validationError(emailError: 'Error');
-      expect(state.hasValidationErrors, isTrue);
+    test('AuthState.initial has initial status', () {
+      final state = AuthState.initial();
+      expect(state.status, AuthStatus.initial);
+      expect(state.user, isNull);
     });
 
-    test('hasValidationErrors returns false when no errors', () {
+    test('AuthState.loading has loading status', () {
+      final state = AuthState.loading();
+      expect(state.status, AuthStatus.loading);
+    });
+
+    test('AuthState.authenticated has user', () {
+      final state = AuthState.authenticated(testUser);
+      expect(state.status, AuthStatus.authenticated);
+      expect(state.user, testUser);
+    });
+
+    test('AuthState.unauthenticated has no user', () {
       final state = AuthState.unauthenticated();
-      expect(state.hasValidationErrors, isFalse);
-    });
-
-    test('copyWith can clear validation errors', () {
-      final state = AuthState.validationError(
-        emailError: 'Error',
-        passwordError: 'Error',
-      );
-      final cleared = state.copyWith(emailError: null, passwordError: null);
-      expect(cleared.emailError, isNull);
-      expect(cleared.passwordError, isNull);
+      expect(state.status, AuthStatus.unauthenticated);
+      expect(state.user, isNull);
     });
   });
 }

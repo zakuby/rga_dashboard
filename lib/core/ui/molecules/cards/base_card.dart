@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+
 /// Base card molecule - reusable card wrapper with gradient background.
 /// Used as the foundation for all dashboard widget cards.
 class BaseCard extends StatelessWidget {
@@ -14,8 +16,8 @@ class BaseCard extends StatelessWidget {
     required this.child,
     this.gradientColors,
     this.elevation = 2,
-    this.borderRadius = 12,
-    this.padding = const EdgeInsets.all(16),
+    this.borderRadius = AppSpacing.radiusLg,
+    this.padding = AppSpacing.cardPadding,
   });
 
   @override

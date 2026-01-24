@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+
 /// Loading view organism for displaying loading state.
 class LoadingView extends StatelessWidget {
   final String? message;
@@ -16,7 +18,7 @@ class LoadingView extends StatelessWidget {
         children: [
           const CircularProgressIndicator(),
           if (message != null) ...[
-            const SizedBox(height: 16),
+            AppSpacing.gapVerticalLg,
             Text(
               message!,
               style: theme.textTheme.bodyMedium?.copyWith(

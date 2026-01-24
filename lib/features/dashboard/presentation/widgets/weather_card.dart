@@ -28,18 +28,18 @@ class WeatherCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           WeatherCardHeader(title: widget.title, condition: data.condition),
-          const SizedBox(height: 8),
+          AppSpacing.gapVerticalSm,
           IconListItem(
             icon: Icons.location_on,
             text: data.location,
             textStyle: theme.textTheme.bodySmall,
           ),
-          const Spacer(),
+          AppSpacing.gapVerticalLg,
           TemperatureDisplay(
             temperature: data.temperature,
             condition: data.condition,
           ),
-          const SizedBox(height: 8),
+          AppSpacing.gapVerticalSm,
           IconListItem(
             icon: Icons.water_drop,
             iconSize: 14,

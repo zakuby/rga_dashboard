@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_typography.dart';
+
 /// Large temperature display text atom.
 class TemperatureText extends StatelessWidget {
   final num temperature;
@@ -22,7 +24,7 @@ class TemperatureText extends StatelessWidget {
     return Text(
       '$temperature$suffix$unitSuffix',
       style: theme.textTheme.displaySmall?.copyWith(
-        fontWeight: FontWeight.bold,
+        fontWeight: AppTypography.weightBold,
       ),
     );
   }

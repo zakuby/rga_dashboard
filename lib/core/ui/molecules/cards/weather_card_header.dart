@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../atoms/icons/weather_icon.dart';
+import '../../theme/app_typography.dart';
 
 /// Weather card header molecule with title and weather condition icon.
 class WeatherCardHeader extends StatelessWidget {
@@ -25,7 +26,7 @@ class WeatherCardHeader extends StatelessWidget {
         Text(
           title,
           style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: AppTypography.weightBold,
           ),
         ),
         WeatherIcon(

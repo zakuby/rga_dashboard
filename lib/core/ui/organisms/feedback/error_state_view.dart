@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+
 /// Error state view organism for displaying error messages with retry.
 class ErrorStateView extends StatelessWidget {
   final String message;
@@ -21,19 +23,19 @@ class ErrorStateView extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: AppSpacing.paddingXl,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 64, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
+            AppSpacing.gapVerticalLg,
             Text(
               message,
               style: theme.textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
-              const SizedBox(height: 16),
+              AppSpacing.gapVerticalLg,
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),

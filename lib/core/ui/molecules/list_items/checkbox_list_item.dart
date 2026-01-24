@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+
 /// Checkbox list item molecule for note/task items.
 /// Used in quick notes card.
 class CheckboxListItem extends StatelessWidget {
@@ -31,7 +33,7 @@ class CheckboxListItem extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-        const SizedBox(width: 8),
+        AppSpacing.gapHorizontalSm,
         Expanded(
           child: Text(
             text,

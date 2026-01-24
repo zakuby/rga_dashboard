@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
+
 /// Event list item molecule with left border indicator.
 /// Used in calendar card for displaying events.
 class EventListItem extends StatelessWidget {
@@ -27,14 +30,14 @@ class EventListItem extends StatelessWidget {
           left: BorderSide(color: color, width: borderWidth),
         ),
       ),
-      padding: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.only(left: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: AppTypography.weightMedium,
             ),
           ),
           if (subtitle != null)

@@ -32,21 +32,15 @@ class NewsSummaryCard extends StatelessWidget {
             icon: Icons.newspaper,
             iconColor: theme.colorScheme.tertiary,
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.headlines.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: BulletListItem(
-                    text: data.headlines[index],
-                    bulletColor: theme.colorScheme.tertiary,
-                    textStyle: theme.textTheme.bodySmall,
-                  ),
-                );
-              },
+          AppSpacing.gapVerticalMd,
+          ...data.headlines.map(
+            (headline) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: BulletListItem(
+                text: headline,
+                bulletColor: theme.colorScheme.tertiary,
+                textStyle: theme.textTheme.bodySmall,
+              ),
             ),
           ),
         ],
@@ -68,7 +62,8 @@ class NewsSummaryCard extends StatelessWidget {
             icon: Icons.newspaper,
             iconColor: theme.colorScheme.tertiary,
           ),
-          const Expanded(child: Center(child: Text('No news available'))),
+          AppSpacing.gapVerticalXl,
+          const Center(child: Text('No news available')),
         ],
       ),
     );

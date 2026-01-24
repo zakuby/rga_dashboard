@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_typography.dart';
+
 /// Card header molecule - title with trailing icon.
 /// Used consistently across all dashboard widget cards.
 class CardHeader extends StatelessWidget {
@@ -28,7 +30,7 @@ class CardHeader extends StatelessWidget {
           style:
               titleStyle ??
               theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: AppTypography.weightBold,
               ),
         ),
         Icon(icon, color: iconColor ?? theme.colorScheme.primary),

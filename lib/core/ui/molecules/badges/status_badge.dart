@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
 
 /// Status badge molecule for displaying status labels.
 class StatusBadge extends StatelessWidget {
@@ -14,7 +16,10 @@ class StatusBadge extends StatelessWidget {
     required this.label,
     this.backgroundColor,
     this.textColor,
-    this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.sm,
+      vertical: AppSpacing.xs,
+    ),
   });
 
   /// Factory for success status.
@@ -63,14 +68,14 @@ class StatusBadge extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppSpacing.borderRadiusSm,
       ),
       child: Text(
         label,
         style: TextStyle(
           color: txtColor,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontWeight: AppTypography.weightMedium,
+          fontSize: AppTypography.fontSizeSm,
         ),
       ),
     );
