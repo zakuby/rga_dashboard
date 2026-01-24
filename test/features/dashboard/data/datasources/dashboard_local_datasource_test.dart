@@ -172,40 +172,5 @@ void main() {
         await expectLater(dataSource.clearWidgets(), completes);
       });
     });
-
-    group('getDefaultWidgets', () {
-      test('should return 5 default widgets', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets.length, 5);
-      });
-
-      test('should return widgets in correct order', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[0].order, 0);
-        expect(widgets[1].order, 1);
-        expect(widgets[2].order, 2);
-        expect(widgets[3].order, 3);
-        expect(widgets[4].order, 4);
-      });
-
-      test('should return weather widget first', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[0].type, WidgetType.weather);
-        expect(widgets[0].id, 'weather_1');
-      });
-
-      test('should include widget data for all widgets', () {
-        final widgets = DashboardLocalDataSourceImpl.getDefaultWidgets();
-
-        expect(widgets[0].weatherData, isNotNull);
-        expect(widgets[1].stockTickerData, isNotNull);
-        expect(widgets[2].newsSummaryData, isNotNull);
-        expect(widgets[3].calendarData, isNotNull);
-        expect(widgets[4].quickNotesData, isNotNull);
-      });
-    });
   });
 }

@@ -9,6 +9,7 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/dashboard/data/datasources/dashboard_local_datasource.dart';
+import 'features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'features/dashboard/domain/usecases/get_widgets_usecase.dart';
@@ -58,9 +59,16 @@ Future<void> initDependencies() async {
     () => DashboardLocalDataSourceImpl(),
   );
 
+  getIt.registerLazySingleton<DashboardRemoteDataSource>(
+    () => DashboardRemoteDataSourceImpl(),
+  );
+
   // Repository
   getIt.registerLazySingleton<DashboardRepository>(
-    () => DashboardRepositoryImpl(localDataSource: getIt()),
+    () => DashboardRepositoryImpl(
+      localDataSource: getIt(),
+      remoteDataSource: getIt(),
+    ),
   );
 
   // Use Cases

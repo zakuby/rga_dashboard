@@ -177,19 +177,29 @@ This section documents key architectural decisions made during development, prov
 
 ---
 
-### Prompt #5: Repository Pattern with SQLite Persistence
+### Prompt #5: Repository Pattern with Local & Remote Data Sources
 
-**Context:** Data access logic needs abstraction to support testing, and the application requires persistent local storage for user sessions and widget configurations.
+**Context:** Data access logic needs abstraction to support testing, and the application requires both persistent local storage and remote data fetching capabilities.
 
-**Decision:** Define repository interfaces in the Domain layer; implement concrete repositories in the Data layer using sqflite for SQLite database operations. Data sources handle raw database queries while repositories transform data between domain entities and database models.
+**Decision:** Define repository interfaces in the Domain layer; implement concrete repositories in the Data layer with two types of data sources:
+
+**A. Local Data Sources**
+- **sqflite**: SQLite database for relational data (widget order, complex configurations)
+- **SharedPreferences**: Key-value storage for simple data (user session, preferences)
+
+**B. Remote Data Sources**
+- **Mock JSON Asset Files**: JSON files in `assets/` directory simulating backend API responses for dashboard data (weather, stocks, news, calendar events)
+- Enables development without a live backend while maintaining realistic data structures
 
 **Rationale:**
 - Domain layer remains independent of storage mechanism (SQLite, SharedPreferences, API)
 - Easy substitution of mock repositories for testing without database setup
 - sqflite provides reliable, transactional local storage with SQL query support
+- SharedPreferences offers lightweight persistence for simple key-value data
+- Mock JSON assets simulate real API responses, enabling seamless transition to actual backend
 - Repository abstraction allows future migration to different storage solutions
 
-**Consequences:** `DatabaseHelper` manages SQLite connections and schema. Each feature has a local data source for database operations and a repository that maps between domain entities and data models.
+**Consequences:** `DatabaseHelper` manages SQLite connections and schema. Each feature has local data sources for persistence and remote data sources that read from JSON asset files, with repositories orchestrating data flow between domain entities and data models.
 
 ---
 
