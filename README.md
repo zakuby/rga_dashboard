@@ -2,6 +2,8 @@
 
 A Flutter dashboard application implementing Clean Architecture, reactive state management, and Atomic Design.
 
+https://github.com/user-attachments/assets/3c3906f2-890d-46cb-81a3-397361ed9936
+
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
