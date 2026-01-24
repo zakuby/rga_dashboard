@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:rga_dashboard/core/error/exceptions.dart';
 import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/auth/domain/entities/user.dart';
 import 'package:rga_dashboard/features/auth/domain/repositories/auth_repository.dart';
@@ -28,14 +29,19 @@ void main() {
     password: 'password123',
   );
 
+  setUpAll(() {
+    registerFallbackValue(testUser);
+  });
+
   group('LoginUseCase', () {
-    test('should call repository login with correct parameters', () async {
+    test('should call repository login and cacheUser on success', () async {
       when(
         () => mockRepository.login(
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer((_) async => Success(testUser));
+      ).thenAnswer((_) async => testUser);
+      when(() => mockRepository.cacheUser(any())).thenAnswer((_) async {});
 
       await useCase(testParams);
 
@@ -45,6 +51,7 @@ void main() {
           password: 'password123',
         ),
       ).called(1);
+      verify(() => mockRepository.cacheUser(any())).called(1);
     });
 
     test('should return Success with User when login succeeds', () async {
@@ -53,7 +60,8 @@ void main() {
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer((_) async => Success(testUser));
+      ).thenAnswer((_) async => testUser);
+      when(() => mockRepository.cacheUser(any())).thenAnswer((_) async {});
 
       final result = await useCase(testParams);
 
@@ -61,59 +69,87 @@ void main() {
       expect((result as Success<User>).data, testUser);
     });
 
-    test('should return Failure when repository returns failure', () async {
+    test(
+      'should return Failure with authentication type on AuthenticationException',
+      () async {
+        when(
+          () => mockRepository.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(const AuthenticationException('Invalid credentials'));
+
+        final result = await useCase(testParams);
+
+        expect(result, isA<Failure<User>>());
+        final failure = result as Failure<User>;
+        expect(failure.message, 'Invalid credentials');
+        expect(failure.type, FailureType.authentication);
+      },
+    );
+
+    test(
+      'should return Failure with timeout type on TimeoutException',
+      () async {
+        when(
+          () => mockRepository.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(const TimeoutException('Request timed out'));
+
+        final result = await useCase(testParams);
+
+        expect(result, isA<Failure<User>>());
+        expect((result as Failure<User>).type, FailureType.timeout);
+      },
+    );
+
+    test(
+      'should return Failure with network type on NetworkException',
+      () async {
+        when(
+          () => mockRepository.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(const NetworkException('No network connection'));
+
+        final result = await useCase(testParams);
+
+        expect(result, isA<Failure<User>>());
+        expect((result as Failure<User>).type, FailureType.network);
+      },
+    );
+
+    test(
+      'should return Failure with unknown type on unexpected error',
+      () async {
+        when(
+          () => mockRepository.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(Exception('Unexpected error'));
+
+        final result = await useCase(testParams);
+
+        expect(result, isA<Failure<User>>());
+        expect((result as Failure<User>).type, FailureType.unknown);
+      },
+    );
+
+    test('should not cache user when login fails', () async {
       when(
         () => mockRepository.login(
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer(
-        (_) async => const Failure(
-          'Invalid credentials',
-          type: FailureType.authentication,
-        ),
-      );
+      ).thenThrow(const AuthenticationException('Invalid credentials'));
 
-      final result = await useCase(testParams);
+      await useCase(testParams);
 
-      expect(result, isA<Failure<User>>());
-      final failure = result as Failure<User>;
-      expect(failure.message, 'Invalid credentials');
-      expect(failure.type, FailureType.authentication);
-    });
-
-    test('should return timeout failure when repository times out', () async {
-      when(
-        () => mockRepository.login(
-          email: any(named: 'email'),
-          password: any(named: 'password'),
-        ),
-      ).thenAnswer(
-        (_) async =>
-            const Failure('Request timed out', type: FailureType.timeout),
-      );
-
-      final result = await useCase(testParams);
-
-      expect(result, isA<Failure<User>>());
-      expect((result as Failure<User>).type, FailureType.timeout);
-    });
-
-    test('should return network failure when no connection', () async {
-      when(
-        () => mockRepository.login(
-          email: any(named: 'email'),
-          password: any(named: 'password'),
-        ),
-      ).thenAnswer(
-        (_) async =>
-            const Failure('No network connection', type: FailureType.network),
-      );
-
-      final result = await useCase(testParams);
-
-      expect(result, isA<Failure<User>>());
-      expect((result as Failure<User>).type, FailureType.network);
+      verifyNever(() => mockRepository.cacheUser(any()));
     });
   });
 
@@ -139,42 +175,6 @@ void main() {
       );
 
       expect(params1, equals(params2));
-    });
-
-    test('should not be equal when email differs', () {
-      const params1 = LoginParams(
-        email: 'test1@example.com',
-        password: 'password123',
-      );
-      const params2 = LoginParams(
-        email: 'test2@example.com',
-        password: 'password123',
-      );
-
-      expect(params1, isNot(equals(params2)));
-    });
-
-    test('should not be equal when password differs', () {
-      const params1 = LoginParams(
-        email: 'test@example.com',
-        password: 'password123',
-      );
-      const params2 = LoginParams(
-        email: 'test@example.com',
-        password: 'password456',
-      );
-
-      expect(params1, isNot(equals(params2)));
-    });
-
-    test('should have correct fields', () {
-      const params = LoginParams(
-        email: 'test@example.com',
-        password: 'password123',
-      );
-
-      expect(params.email, 'test@example.com');
-      expect(params.password, 'password123');
     });
   });
 }

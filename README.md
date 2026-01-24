@@ -115,25 +115,38 @@ flutter test --coverage       # With coverage report
 
 This section documents key architectural decisions made during development, providing rationale for technology and pattern choices.
 
-### Prompt #1: Clean Architecture & Layered Structure
+### Prompt #1: Clean Architecture & Repository Pattern
 
-**Context:** The application needs a scalable architecture that separates business logic from UI concerns, enabling independent testing and future modifications without cascading changes.
+**Context:** The application needs a scalable architecture that separates business logic from UI concerns, enabling independent testing and future modifications without cascading changes. Data access logic needs abstraction to support testing, with both persistent local storage and remote data fetching capabilities.
 
-**Decision:** Implement Clean Architecture with three distinct layers (Presentation, Domain, Data) where dependencies point inward. Business logic resides in the Domain layer through Use Cases, completely decoupled from UI and framework-specific code.
+**Decision:** Implement Clean Architecture with three distinct layers (Presentation, Domain, Data) where dependencies point inward. Business logic resides in the Domain layer through Use Cases, completely decoupled from UI and framework-specific code. Repository interfaces are defined in the Domain layer; concrete implementations in the Data layer orchestrate two types of data sources:
+
+**A. Local Data Sources**
+- **sqflite**: SQLite database for relational data (widget order, complex configurations)
+- **SharedPreferences**: Key-value storage for simple data (user session, preferences)
+
+**B. Remote Data Sources**
+- **Mock JSON Asset Files**: JSON files in `assets/` directory simulating backend API responses for dashboard data (weather, stocks, news, calendar events)
+- Enables development without a live backend while maintaining realistic data structures
 
 **Rationale:**
 - Business logic remains testable without UI framework dependencies
 - Each layer has a single responsibility and clear boundaries
 - Domain layer defines interfaces; outer layers provide implementations
 - Supports future platform expansion (web, desktop) without rewriting core logic
+- Domain layer remains independent of storage mechanism (SQLite, SharedPreferences, API)
+- Easy substitution of mock repositories for testing without database setup
+- sqflite provides reliable, transactional local storage with SQL query support
+- SharedPreferences offers lightweight persistence for simple key-value data
+- Mock JSON assets simulate real API responses, enabling seamless transition to actual backend
 
-**Consequences:** All features follow the layered structure with entities, use cases, and repository contracts in Domain; DTOs, data sources, and repository implementations in Data; and state management with UI components in Presentation.
+**Consequences:** All features follow the layered structure with entities, use cases, and repository contracts in Domain; DTOs, data sources, and repository implementations in Data; and state management with UI components in Presentation. `DatabaseHelper` manages SQLite connections and schema. Each feature has local data sources for persistence and remote data sources that read from JSON asset files, with repositories orchestrating data flow between domain entities and data models.
 
 ---
 
-### Prompt #2: BLoC Pattern with Cubit
+### Prompt #2: Predictable State with BLoC/Cubit
 
-**Context:** The application requires reactive UI updates based on asynchronous operations with support for loading, success, and error states.
+**Context:** The application requires reactive UI updates based on asynchronous operations with support for loading, success, and error states. State transitions must be predictable and traceable.
 
 **Decision:** Implement state management using the BLoC pattern with Cubit, a lightweight variant that uses method-based actions rather than event streams. States are immutable classes extending Equatable for predictable rebuilds.
 
@@ -147,11 +160,11 @@ This section documents key architectural decisions made during development, prov
 
 ---
 
-### Prompt #3: Core Features Implementation
+### Prompt #3: Core Features with Optimistic UI & Type-Safe Data
 
-**Context:** The application requires two core features with specific architectural and persistence requirements.
+**Context:** The application requires two core features with specific architectural and persistence requirements. Drag-and-drop reordering requires immediate visual feedback, and dashboard widgets have different data requirements.
 
-**Decision:** Implement both features following Clean Architecture:
+**Decision:** Implement both features following Clean Architecture with optimistic UI updates and type-safe widget data:
 
 **A. The Login Screen (Simulated Auth)**
 - Implement a Login page with simulated asynchronous authentication (add a fake delay of 1-2 seconds)
@@ -165,59 +178,30 @@ This section documents key architectural decisions made during development, prov
 - Persistence: The new order of the widgets must be saved locally using SQLite. If the list is reordered and the app restarts, the order must be preserved
 - AI Requirement: Use AI to generate the boilerplate for the widget models and the card layout logic
 
+**C. Optimistic UI Updates**
+- State changes are emitted immediately upon user action, then persisted asynchronously
+- If persistence fails, state reverts to the original order
+- Maintains 60fps interaction responsiveness during drag operations
+- State management tracks both optimistic state and original state for potential rollback
+
+**D. Type-Safe Widget Data**
+- Sealed classes for widget data types with exhaustive pattern matching
+- Compile-time verification of data handling for all widget types
+- Self-documenting data requirements per widget type (weather needs temperature, stocks need price changes, etc.)
+
 **Rationale:**
 - Simulated delay provides realistic async UX without backend dependency
 - Repository abstraction enables easy swap to real API in production
 - SQLite chosen over SharedPreferences for relational data and complex queries
 - `ReorderableListView` provides native Flutter drag-and-drop with minimal custom code
+- Optimistic updates align with user expectations from native applications
+- Sealed classes prevent runtime type errors; IDE supports handling all cases
 
-**Consequences:** `AuthCubit` manages login state with `checkAuthStatus()` on app launch to restore sessions. `DashboardCubit` loads widgets in persisted order and saves new order on every reorder action. Test credentials: `test@example.com` / `password123`.
-
----
-
-### Prompt #4: Responsive Drag-and-Drop Reordering
-
-**Context:** Drag-and-drop reordering requires immediate visual feedback; waiting for persistence creates perceptible lag that degrades user experience.
-
-**Decision:** Implement optimistic UI updates where state changes are emitted immediately upon user action, then persisted asynchronously. If persistence fails, state reverts to the original order.
-
-**Rationale:**
-- Maintains 60fps interaction responsiveness during drag operations
-- Aligns with user expectations from native applications
-- Failure case (revert) is rare and acceptable trade-off
-- Provides instant feedback while ensuring data consistency
-
-**Consequences:** State management must track both optimistic state and original state for potential rollback. The `DashboardCubit` emits a `reordering` state before async persistence completes.
+**Consequences:** `AuthCubit` manages login state with `checkAuthStatus()` on app launch to restore sessions. `DashboardCubit` loads widgets in persisted order, emits a `reordering` state before async persistence completes, and saves new order on every reorder action. Adding new widget types requires updating switch expressions, but compiler ensures completeness. Test credentials: `test@example.com` / `password123`.
 
 ---
 
-### Prompt #5: Repository Pattern with Local & Remote Data Sources
-
-**Context:** Data access logic needs abstraction to support testing, and the application requires both persistent local storage and remote data fetching capabilities.
-
-**Decision:** Define repository interfaces in the Domain layer; implement concrete repositories in the Data layer with two types of data sources:
-
-**A. Local Data Sources**
-- **sqflite**: SQLite database for relational data (widget order, complex configurations)
-- **SharedPreferences**: Key-value storage for simple data (user session, preferences)
-
-**B. Remote Data Sources**
-- **Mock JSON Asset Files**: JSON files in `assets/` directory simulating backend API responses for dashboard data (weather, stocks, news, calendar events)
-- Enables development without a live backend while maintaining realistic data structures
-
-**Rationale:**
-- Domain layer remains independent of storage mechanism (SQLite, SharedPreferences, API)
-- Easy substitution of mock repositories for testing without database setup
-- sqflite provides reliable, transactional local storage with SQL query support
-- SharedPreferences offers lightweight persistence for simple key-value data
-- Mock JSON assets simulate real API responses, enabling seamless transition to actual backend
-- Repository abstraction allows future migration to different storage solutions
-
-**Consequences:** `DatabaseHelper` manages SQLite connections and schema. Each feature has local data sources for persistence and remote data sources that read from JSON asset files, with repositories orchestrating data flow between domain entities and data models.
-
----
-
-### Prompt #6: Design System with Atomic Design & Centralized Theming
+### Prompt #4: Design System with Atomic Design
 
 **Context:** UI components need consistent styling and behavior across the application while remaining maintainable and reusable. Direct usage of color constants throughout the codebase leads to inconsistency.
 
@@ -234,23 +218,7 @@ This section documents key architectural decisions made during development, prov
 
 ---
 
-### Prompt #7: Type-Safe Widget Data
-
-**Context:** Dashboard widgets have different data requirements (weather needs temperature, stocks need price changes, etc.).
-
-**Decision:** Use sealed classes for widget data types with exhaustive pattern matching.
-
-**Rationale:**
-- Compile-time verification of data handling for all widget types
-- Self-documenting data requirements per widget type
-- IDE support for handling all cases
-- Prevents runtime type errors
-
-**Consequences:** Adding new widget types requires updating switch expressions, but compiler ensures completeness.
-
----
-
-### Prompt #8: Testing Strategy with Mocked Dependencies
+### Prompt #5: Testing Strategy
 
 **Context:** The application requires comprehensive test coverage for business logic, state management, and UI components without depending on real databases or external services.
 
@@ -266,48 +234,26 @@ This section documents key architectural decisions made during development, prov
 
 ---
 
-### Prompt #9: Code Generation with Freezed & Injectable
+### Prompt #6: Code Generation & Standardized Patterns
 
-**Context:** Clean Architecture introduces significant boilerplate: immutable data classes require manual `copyWith`, `==`, `hashCode`, and JSON serialization; dependency injection requires manual registration of every class.
+**Context:** Clean Architecture introduces significant boilerplate: immutable data classes require manual `copyWith`, `==`, `hashCode`, and JSON serialization; dependency injection requires manual registration of every class. Remote data sources need consistent parsing of API responses and separation of I/O operations from business logic.
 
-**Decision:** Adopt Freezed for immutable data classes and Injectable for dependency injection code generation.
+**Decision:** Adopt Freezed for immutable data classes, Injectable for dependency injection, standardized API response structures, and separated asset loading.
 
-**Freezed Benefits:**
+**A. Freezed Benefits:**
 - Immutable data classes with auto-generated `copyWith`, `==`, `hashCode`
 - JSON serialization via `fromJson`/`toJson` with snake_case conversion configured in `build.yaml`
 - Union types for `WidgetData` (weather, stockTicker, calendar, newsSummary, quickNotes)
 - Generic classes like `BaseResponse<T>` with proper serialization
 - Default values with `@Default()` annotation for defensive parsing of missing fields
 
-**Injectable Benefits:**
+**B. Injectable Benefits:**
 - Auto-generated dependency injection graph from annotations
 - `@lazySingleton` for repositories, use cases, and data sources (single instance)
 - `@injectable` for Cubits (new instance per screen)
 - `@LazySingleton(as: Interface)` for binding implementations to interfaces
 
-**Boilerplate Eliminated:**
-- ~2500+ lines of manual code replaced by annotations
-- 11 `.freezed.dart` files for immutable classes
-- 7 `.g.dart` files for JSON serialization
-- 1 `.config.dart` file for dependency injection
-
-**Rationale:**
-- Reduces human error in repetitive equality/serialization implementations
-- Guarantees consistency across all data classes
-- Annotations are self-documenting and IDE-friendly
-- Build runner catches errors at compile time rather than runtime
-
-**Consequences:** Run `dart run build_runner build --delete-conflicting-outputs` after modifying annotated classes. Generated files are committed to version control for CI compatibility.
-
----
-
-### Prompt #10: Standardized API Response Structure
-
-**Context:** Remote data sources need consistent parsing of API responses, including error handling for failed requests.
-
-**Decision:** Implement `BaseResponse<T>` and `ErrorResponse` as generic Freezed classes for all API responses.
-
-**Structure:**
+**C. Standardized API Response Structure:**
 ```dart
 @Freezed(genericArgumentFactories: true)
 class BaseResponse<T> {
@@ -328,34 +274,29 @@ class ErrorResponse {
 }
 ```
 
-**Rationale:**
-- Single pattern for all API response handling
-- Generic `<T>` allows type-safe data extraction
-- Helper getters simplify conditional logic in data sources
-- Error structure provides both machine-readable code and human-readable message
-
-**Consequences:** All remote data sources deserialize responses through `BaseResponse<T>`, checking `isError` before extracting `data`. Mock JSON files follow the same structure for consistency.
-
----
-
-### Prompt #11: Separated JSON Asset Loading
-
-**Context:** Remote data sources mix I/O operations (reading JSON files) with business logic (parsing responses), reducing testability and readability.
-
-**Decision:** Extract asset loading into a dedicated `JsonAssetLoader` class injected into data sources.
-
-**Implementation:**
+**D. Separated JSON Asset Loading:**
 ```dart
 @lazySingleton
 class JsonAssetLoader {
   Future<String> loadJsonAsset(String assetPath);
 }
 ```
-
-**Rationale:**
 - Single Responsibility: Data sources focus on parsing, not file I/O
 - Testability: Mock `JsonAssetLoader` instead of mocking `rootBundle`
 - Reusability: Same loader used across all remote data sources
-- Readability: Data source methods become concise transformation pipelines
 
-**Consequences:** Remote data sources receive `JsonAssetLoader` via constructor injection. Tests mock the loader to return predefined JSON strings without touching the asset bundle.
+**Boilerplate Eliminated:**
+- ~2500+ lines of manual code replaced by annotations
+- 11 `.freezed.dart` files for immutable classes
+- 7 `.g.dart` files for JSON serialization
+- 1 `.config.dart` file for dependency injection
+
+**Rationale:**
+- Reduces human error in repetitive equality/serialization implementations
+- Guarantees consistency across all data classes
+- Annotations are self-documenting and IDE-friendly
+- Build runner catches errors at compile time rather than runtime
+- Single pattern for all API response handling with type-safe data extraction
+- Error structure provides both machine-readable code and human-readable message
+
+**Consequences:** Run `dart run build_runner build --delete-conflicting-outputs` after modifying annotated classes. All remote data sources deserialize responses through `BaseResponse<T>`, checking `isError` before extracting `data`. Remote data sources receive `JsonAssetLoader` via constructor injection; tests mock the loader to return predefined JSON strings without touching the asset bundle.

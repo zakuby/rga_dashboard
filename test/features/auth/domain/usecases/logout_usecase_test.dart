@@ -16,20 +16,16 @@ void main() {
   });
 
   group('LogoutUseCase', () {
-    test('should call repository logout', () async {
-      when(
-        () => mockRepository.logout(),
-      ).thenAnswer((_) async => const Success(true));
+    test('should call repository clearCache', () async {
+      when(() => mockRepository.clearCache()).thenAnswer((_) async {});
 
       await useCase();
 
-      verify(() => mockRepository.logout()).called(1);
+      verify(() => mockRepository.clearCache()).called(1);
     });
 
     test('should return Success with true when logout succeeds', () async {
-      when(
-        () => mockRepository.logout(),
-      ).thenAnswer((_) async => const Success(true));
+      when(() => mockRepository.clearCache()).thenAnswer((_) async {});
 
       final result = await useCase();
 
@@ -37,30 +33,20 @@ void main() {
       expect((result as Success<bool>).data, true);
     });
 
-    test('should return Failure when logout fails', () async {
-      when(() => mockRepository.logout()).thenAnswer(
-        (_) async =>
-            const Failure('Failed to clear session', type: FailureType.cache),
-      );
+    test(
+      'should return Failure with cache type when clearCache fails',
+      () async {
+        when(
+          () => mockRepository.clearCache(),
+        ).thenThrow(Exception('Cache error'));
 
-      final result = await useCase();
+        final result = await useCase();
 
-      expect(result, isA<Failure<bool>>());
-      final failure = result as Failure<bool>;
-      expect(failure.message, 'Failed to clear session');
-      expect(failure.type, FailureType.cache);
-    });
-
-    test('should return unknown failure on unexpected error', () async {
-      when(() => mockRepository.logout()).thenAnswer(
-        (_) async =>
-            const Failure('Unexpected error', type: FailureType.unknown),
-      );
-
-      final result = await useCase();
-
-      expect(result, isA<Failure<bool>>());
-      expect((result as Failure<bool>).type, FailureType.unknown);
-    });
+        expect(result, isA<Failure<bool>>());
+        final failure = result as Failure<bool>;
+        expect(failure.type, FailureType.cache);
+        expect(failure.message, 'Failed to logout. Please try again.');
+      },
+    );
   });
 }

@@ -1,21 +1,22 @@
-import '../../../../core/result/result.dart';
 import '../entities/user.dart';
 
-/// Abstract repository defining authentication operations.
-/// The concrete implementation is in the data layer.
+/// Abstract repository defining authentication data operations.
+/// This is a thin data access layer - business logic belongs in use cases.
 abstract class AuthRepository {
-  /// Authenticates a user with email and password.
-  /// Returns [User] on success or [Failure] on error.
-  Future<Result<User>> login({required String email, required String password});
+  /// Authenticates user with remote service.
+  /// Throws exceptions on failure.
+  Future<User> login({required String email, required String password});
 
-  /// Logs out the current user.
-  /// Returns true on success.
-  Future<Result<bool>> logout();
+  /// Caches user locally for session persistence.
+  Future<void> cacheUser(User user);
 
-  /// Checks if there's an authenticated session.
-  /// Returns [User] if session exists, null otherwise.
-  Future<Result<User?>> getCurrentUser();
+  /// Retrieves cached user from local storage.
+  /// Returns null if no user is cached.
+  Future<User?> getCachedUser();
 
-  /// Checks if the user session is valid.
-  Future<Result<bool>> isLoggedIn();
+  /// Clears cached user data.
+  Future<void> clearCache();
+
+  /// Checks if a user session exists locally.
+  Future<bool> hasUser();
 }

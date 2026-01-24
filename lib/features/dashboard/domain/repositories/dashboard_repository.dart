@@ -1,17 +1,20 @@
-import '../../../../core/result/result.dart';
 import '../entities/dashboard_widget.dart';
 
-/// Abstract repository defining dashboard operations.
+/// Abstract repository defining dashboard data operations.
+/// This is a thin data access layer - business logic belongs in use cases.
 abstract class DashboardRepository {
-  /// Gets all dashboard widgets sorted by order.
-  Future<Result<List<DashboardWidget>>> getWidgets();
+  /// Fetches widgets from remote source.
+  Future<List<DashboardWidget>> fetchRemoteWidgets();
 
-  /// Saves the widget order (after reordering).
-  Future<Result<bool>> saveWidgetOrder(List<DashboardWidget> widgets);
+  /// Gets widgets from local storage.
+  Future<List<DashboardWidget>> getLocalWidgets();
 
-  /// Updates a single widget.
-  Future<Result<DashboardWidget>> updateWidget(DashboardWidget widget);
+  /// Saves widgets to local storage.
+  Future<void> saveWidgets(List<DashboardWidget> widgets);
 
-  /// Resets widgets to default configuration.
-  Future<Result<List<DashboardWidget>>> resetToDefaults();
+  /// Clears all widgets from local storage.
+  Future<void> clearWidgets();
+
+  /// Checks if widgets exist in local storage.
+  Future<bool> hasLocalWidgets();
 }

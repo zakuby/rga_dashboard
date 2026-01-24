@@ -9,6 +9,7 @@ import '../repositories/dashboard_repository.dart';
 part 'reorder_widgets_usecase.freezed.dart';
 
 /// Use case for reordering dashboard widgets.
+/// Updates position values and persists the new order.
 @lazySingleton
 class ReorderWidgetsUseCase implements UseCase<bool, ReorderParams> {
   final DashboardRepository repository;
@@ -17,12 +18,21 @@ class ReorderWidgetsUseCase implements UseCase<bool, ReorderParams> {
 
   @override
   Future<Result<bool>> call(ReorderParams params) async {
-    // Update order values based on new positions
-    final reorderedWidgets = <DashboardWidget>[];
-    for (var i = 0; i < params.widgets.length; i++) {
-      reorderedWidgets.add(params.widgets[i].copyWith(position: i));
+    try {
+      // Update position values based on new list order
+      final reorderedWidgets = <DashboardWidget>[];
+      for (var i = 0; i < params.widgets.length; i++) {
+        reorderedWidgets.add(params.widgets[i].copyWith(position: i));
+      }
+
+      await repository.saveWidgets(reorderedWidgets);
+      return const Success(true);
+    } catch (e) {
+      return Failure(
+        'Failed to save widget order: ${e.toString()}',
+        type: FailureType.cache,
+      );
     }
-    return repository.saveWidgetOrder(reorderedWidgets);
   }
 }
 

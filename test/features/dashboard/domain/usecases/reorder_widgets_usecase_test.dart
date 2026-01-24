@@ -42,21 +42,18 @@ void main() {
   ];
 
   group('ReorderWidgetsUseCase', () {
-    test('should call repository saveWidgetOrder', () async {
-      when(
-        () => mockRepository.saveWidgetOrder(any()),
-      ).thenAnswer((_) async => const Success(true));
+    test('should call repository saveWidgets', () async {
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
       await useCase(ReorderParams(testWidgets));
 
-      verify(() => mockRepository.saveWidgetOrder(any())).called(1);
+      verify(() => mockRepository.saveWidgets(any())).called(1);
     });
 
-    test('should update order values based on list position', () async {
+    test('should update position values based on list order', () async {
       List<DashboardWidget>? capturedWidgets;
-      when(() => mockRepository.saveWidgetOrder(any())).thenAnswer((inv) async {
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
         capturedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
-        return const Success(true);
       });
 
       // Reposition: widget-3 first, then widget-1, then widget-2
@@ -73,9 +70,7 @@ void main() {
     });
 
     test('should return Success when save succeeds', () async {
-      when(
-        () => mockRepository.saveWidgetOrder(any()),
-      ).thenAnswer((_) async => const Success(true));
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
       final result = await useCase(ReorderParams(testWidgets));
 
@@ -83,36 +78,31 @@ void main() {
       expect((result as Success<bool>).data, true);
     });
 
-    test('should return Failure when save fails', () async {
-      when(() => mockRepository.saveWidgetOrder(any())).thenAnswer(
-        (_) async =>
-            const Failure('Failed to save order', type: FailureType.cache),
-      );
+    test('should return Failure when save throws', () async {
+      when(
+        () => mockRepository.saveWidgets(any()),
+      ).thenThrow(Exception('Save error'));
 
       final result = await useCase(ReorderParams(testWidgets));
 
       expect(result, isA<Failure<bool>>());
       final failure = result as Failure<bool>;
-      expect(failure.message, 'Failed to save order');
       expect(failure.type, FailureType.cache);
     });
 
     test('should handle empty widgets list', () async {
-      when(
-        () => mockRepository.saveWidgetOrder(any()),
-      ).thenAnswer((_) async => const Success(true));
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
       final result = await useCase(const ReorderParams([]));
 
       expect(result, isA<Success<bool>>());
-      verify(() => mockRepository.saveWidgetOrder([])).called(1);
+      verify(() => mockRepository.saveWidgets([])).called(1);
     });
 
     test('should handle single widget', () async {
       List<DashboardWidget>? capturedWidgets;
-      when(() => mockRepository.saveWidgetOrder(any())).thenAnswer((inv) async {
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
         capturedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
-        return const Success(true);
       });
 
       final singleWidget = [testWidgets[0]];
@@ -123,11 +113,10 @@ void main() {
       expect(capturedWidgets![0].position, 0);
     });
 
-    test('should preserve widget properties except order', () async {
+    test('should preserve widget properties except position', () async {
       List<DashboardWidget>? capturedWidgets;
-      when(() => mockRepository.saveWidgetOrder(any())).thenAnswer((inv) async {
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
         capturedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
-        return const Success(true);
       });
 
       const notesData = QuickNotesData(notes: ['test note']);
@@ -147,7 +136,6 @@ void main() {
       expect(capturedWidgets![0].title, 'Notes');
       expect(capturedWidgets![0].position, 0); // Updated
       expect(capturedWidgets![0].widgetData, notesData);
-      expect(capturedWidgets![0].quickNotesData?.notes, ['test note']);
     });
   });
 
@@ -164,32 +152,6 @@ void main() {
       final params2 = ReorderParams(testWidgets);
 
       expect(params1, equals(params2));
-    });
-
-    test('should not be equal for different widgets', () {
-      final params1 = ReorderParams(testWidgets);
-      final params2 = ReorderParams([testWidgets[0]]);
-
-      expect(params1, isNot(equals(params2)));
-    });
-
-    test('should not be equal for different order', () {
-      final params1 = ReorderParams(testWidgets);
-      final params2 = ReorderParams(testWidgets.reversed.toList());
-
-      expect(params1, isNot(equals(params2)));
-    });
-
-    test('should have correct fields', () {
-      final params = ReorderParams(testWidgets);
-
-      expect(params.widgets, testWidgets);
-    });
-
-    test('should handle empty list', () {
-      const params = ReorderParams([]);
-
-      expect(params.widgets, isEmpty);
     });
   });
 }

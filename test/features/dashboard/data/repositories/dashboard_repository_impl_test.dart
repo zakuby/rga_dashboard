@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/dashboard/data/datasources/dashboard_local_datasource.dart';
 import 'package:rga_dashboard/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'package:rga_dashboard/features/dashboard/data/models/dashboard_widget_model.dart';
@@ -45,18 +44,6 @@ void main() {
       type: WidgetType.weather,
       title: 'Remote Weather',
       position: 0,
-      data: WeatherData(
-        location: 'Remote City',
-        temperature: 80,
-        condition: 'cloudy',
-        humidity: 60,
-      ),
-    ),
-    const DashboardWidgetModel(
-      id: 'remote-2',
-      type: WidgetType.stockTicker,
-      title: 'Remote Stocks',
-      position: 1,
     ),
   ];
 
@@ -74,88 +61,75 @@ void main() {
   });
 
   group('DashboardRepositoryImpl', () {
-    group('getWidgets', () {
-      test('should return local widgets when they exist in storage', () async {
+    group('fetchRemoteWidgets', () {
+      test('should fetch widgets from remote data source', () async {
         when(
-          () => mockLocalDataSource.hasWidgets(),
-        ).thenAnswer((_) async => true);
+          () => mockRemoteDataSource.fetchWidgets(),
+        ).thenAnswer((_) async => remoteWidgetModels);
+
+        final result = await repository.fetchRemoteWidgets();
+
+        expect(result.length, 1);
+        expect(result[0].id, 'remote-1');
+        verify(() => mockRemoteDataSource.fetchWidgets()).called(1);
+      });
+
+      test('should convert models to entities', () async {
         when(
-          () => mockLocalDataSource.getWidgets(),
+          () => mockRemoteDataSource.fetchWidgets(),
         ).thenAnswer((_) async => testWidgetModels);
 
-        final result = await repository.getWidgets();
+        final result = await repository.fetchRemoteWidgets();
 
-        expect(result, isA<Success<List<DashboardWidget>>>());
-        final widgets = (result as Success<List<DashboardWidget>>).data;
-        expect(widgets.length, 2);
-        expect(widgets[0].id, 'widget-1');
-        verify(() => mockLocalDataSource.hasWidgets()).called(1);
-        verify(() => mockLocalDataSource.getWidgets()).called(1);
-        verifyNever(() => mockRemoteDataSource.fetchWidgets());
+        expect(result, isA<List<DashboardWidget>>());
+        expect(result[0], isA<DashboardWidget>());
       });
 
-      test(
-        'should fetch from remote and cache when no local widgets exist',
-        () async {
-          when(
-            () => mockLocalDataSource.hasWidgets(),
-          ).thenAnswer((_) async => false);
-          when(
-            () => mockRemoteDataSource.fetchWidgets(),
-          ).thenAnswer((_) async => remoteWidgetModels);
-          when(
-            () => mockLocalDataSource.saveWidgets(any()),
-          ).thenAnswer((_) async {});
-
-          final result = await repository.getWidgets();
-
-          expect(result, isA<Success<List<DashboardWidget>>>());
-          final widgets = (result as Success<List<DashboardWidget>>).data;
-          expect(widgets.length, 2);
-          expect(widgets[0].id, 'remote-1');
-          expect(widgets[0].title, 'Remote Weather');
-          verify(() => mockRemoteDataSource.fetchWidgets()).called(1);
-          verify(() => mockLocalDataSource.saveWidgets(any())).called(1);
-        },
-      );
-
-      test('should return Failure when exception is thrown', () async {
-        when(
-          () => mockLocalDataSource.hasWidgets(),
-        ).thenThrow(Exception('Database error'));
-
-        final result = await repository.getWidgets();
-
-        expect(result, isA<Failure<List<DashboardWidget>>>());
-        expect((result as Failure).type, FailureType.cache);
-      });
-
-      test('should return Failure when remote fetch fails', () async {
-        when(
-          () => mockLocalDataSource.hasWidgets(),
-        ).thenAnswer((_) async => false);
+      test('should throw when remote fetch fails', () async {
         when(
           () => mockRemoteDataSource.fetchWidgets(),
         ).thenThrow(Exception('Network error'));
 
-        final result = await repository.getWidgets();
-
-        expect(result, isA<Failure<List<DashboardWidget>>>());
-        expect((result as Failure).type, FailureType.cache);
+        expect(
+          () => repository.fetchRemoteWidgets(),
+          throwsA(isA<Exception>()),
+        );
       });
     });
 
-    group('saveWidgetOrder', () {
-      test('should return Success when save succeeds', () async {
+    group('getLocalWidgets', () {
+      test('should get widgets from local data source', () async {
+        when(
+          () => mockLocalDataSource.getWidgets(),
+        ).thenAnswer((_) async => testWidgetModels);
+
+        final result = await repository.getLocalWidgets();
+
+        expect(result.length, 2);
+        expect(result[0].id, 'widget-1');
+        verify(() => mockLocalDataSource.getWidgets()).called(1);
+      });
+
+      test('should return empty list when no local widgets', () async {
+        when(
+          () => mockLocalDataSource.getWidgets(),
+        ).thenAnswer((_) async => []);
+
+        final result = await repository.getLocalWidgets();
+
+        expect(result, isEmpty);
+      });
+    });
+
+    group('saveWidgets', () {
+      test('should save widgets to local data source', () async {
         when(
           () => mockLocalDataSource.saveWidgets(any()),
         ).thenAnswer((_) async {});
 
         final widgets = testWidgetModels.map((m) => m.toEntity()).toList();
-        final result = await repository.saveWidgetOrder(widgets);
+        await repository.saveWidgets(widgets);
 
-        expect(result, isA<Success<bool>>());
-        expect((result as Success<bool>).data, true);
         verify(() => mockLocalDataSource.saveWidgets(any())).called(1);
       });
 
@@ -175,145 +149,50 @@ void main() {
           position: 0,
         );
 
-        await repository.saveWidgetOrder([entity]);
+        await repository.saveWidgets([entity]);
 
         expect(capturedModels, isNotNull);
         expect(capturedModels!.first.id, 'entity-1');
-        expect(capturedModels!.first, isA<DashboardWidgetModel>());
       });
 
-      test('should return Failure when save fails', () async {
+      test('should throw when save fails', () async {
         when(
           () => mockLocalDataSource.saveWidgets(any()),
         ).thenThrow(Exception('Save error'));
 
-        final result = await repository.saveWidgetOrder([]);
-
-        expect(result, isA<Failure<bool>>());
-        expect((result as Failure).type, FailureType.cache);
+        expect(() => repository.saveWidgets([]), throwsA(isA<Exception>()));
       });
     });
 
-    group('updateWidget', () {
-      test('should return Success when widget is found and updated', () async {
-        when(
-          () => mockLocalDataSource.getWidgets(),
-        ).thenAnswer((_) async => testWidgetModels);
-        when(
-          () => mockLocalDataSource.saveWidgets(any()),
-        ).thenAnswer((_) async {});
-
-        const updatedWidget = DashboardWidget(
-          id: 'widget-1',
-          type: WidgetType.weather,
-          title: 'Updated Weather',
-          position: 0,
-        );
-
-        final result = await repository.updateWidget(updatedWidget);
-
-        expect(result, isA<Success<DashboardWidget>>());
-        expect(
-          (result as Success<DashboardWidget>).data.title,
-          'Updated Weather',
-        );
-        verify(() => mockLocalDataSource.saveWidgets(any())).called(1);
-      });
-
-      test('should return Failure when widget not found', () async {
-        when(
-          () => mockLocalDataSource.getWidgets(),
-        ).thenAnswer((_) async => testWidgetModels);
-
-        const nonExistentWidget = DashboardWidget(
-          id: 'non-existent',
-          type: WidgetType.weather,
-          title: 'Test',
-          position: 0,
-        );
-
-        final result = await repository.updateWidget(nonExistentWidget);
-
-        expect(result, isA<Failure<DashboardWidget>>());
-        expect((result as Failure).message, 'Widget not found');
-      });
-
-      test('should return Failure when exception is thrown', () async {
-        when(
-          () => mockLocalDataSource.getWidgets(),
-        ).thenThrow(Exception('Get error'));
-
-        const widget = DashboardWidget(
-          id: 'widget-1',
-          type: WidgetType.weather,
-          title: 'Test',
-          position: 0,
-        );
-
-        final result = await repository.updateWidget(widget);
-
-        expect(result, isA<Failure<DashboardWidget>>());
-        expect((result as Failure).type, FailureType.cache);
-      });
-    });
-
-    group('resetToDefaults', () {
-      test('should clear widgets and fetch from remote', () async {
+    group('clearWidgets', () {
+      test('should clear widgets from local data source', () async {
         when(() => mockLocalDataSource.clearWidgets()).thenAnswer((_) async {});
-        when(
-          () => mockRemoteDataSource.fetchWidgets(),
-        ).thenAnswer((_) async => remoteWidgetModels);
-        when(
-          () => mockLocalDataSource.saveWidgets(any()),
-        ).thenAnswer((_) async {});
 
-        final result = await repository.resetToDefaults();
+        await repository.clearWidgets();
 
-        expect(result, isA<Success<List<DashboardWidget>>>());
-        final widgets = (result as Success<List<DashboardWidget>>).data;
-        expect(widgets.length, 2);
-        expect(widgets[0].id, 'remote-1');
         verify(() => mockLocalDataSource.clearWidgets()).called(1);
-        verify(() => mockRemoteDataSource.fetchWidgets()).called(1);
-        verify(() => mockLocalDataSource.saveWidgets(any())).called(1);
+      });
+    });
+
+    group('hasLocalWidgets', () {
+      test('should return true when local widgets exist', () async {
+        when(
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => true);
+
+        final result = await repository.hasLocalWidgets();
+
+        expect(result, isTrue);
       });
 
-      test('should return Failure when clear fails', () async {
+      test('should return false when no local widgets', () async {
         when(
-          () => mockLocalDataSource.clearWidgets(),
-        ).thenThrow(Exception('Clear error'));
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => false);
 
-        final result = await repository.resetToDefaults();
+        final result = await repository.hasLocalWidgets();
 
-        expect(result, isA<Failure<List<DashboardWidget>>>());
-        expect((result as Failure).type, FailureType.cache);
-      });
-
-      test('should return Failure when remote fetch fails', () async {
-        when(() => mockLocalDataSource.clearWidgets()).thenAnswer((_) async {});
-        when(
-          () => mockRemoteDataSource.fetchWidgets(),
-        ).thenThrow(Exception('Fetch error'));
-
-        final result = await repository.resetToDefaults();
-
-        expect(result, isA<Failure<List<DashboardWidget>>>());
-        expect((result as Failure).type, FailureType.cache);
-      });
-
-      test('should return Failure when save fails', () async {
-        when(() => mockLocalDataSource.clearWidgets()).thenAnswer((_) async {});
-        when(
-          () => mockRemoteDataSource.fetchWidgets(),
-        ).thenAnswer((_) async => remoteWidgetModels);
-        when(
-          () => mockLocalDataSource.saveWidgets(any()),
-        ).thenThrow(Exception('Save error'));
-
-        final result = await repository.resetToDefaults();
-
-        expect(result, isA<Failure<List<DashboardWidget>>>());
-        expect((result as Failure).type, FailureType.cache);
+        expect(result, isFalse);
       });
     });
   });

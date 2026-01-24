@@ -16,6 +16,10 @@ void main() {
     useCase = GetWidgetsUseCase(mockRepository);
   });
 
+  setUpAll(() {
+    registerFallbackValue(<DashboardWidget>[]);
+  });
+
   final testWidgets = [
     const DashboardWidget(
       id: 'widget-1',
@@ -29,44 +33,64 @@ void main() {
       title: 'Stocks',
       position: 1,
     ),
+  ];
+
+  final remoteWidgets = [
     const DashboardWidget(
-      id: 'widget-3',
+      id: 'remote-1',
       type: WidgetType.calendar,
-      title: 'Calendar',
-      position: 2,
+      title: 'Remote Calendar',
+      position: 0,
     ),
   ];
 
   group('GetWidgetsUseCase', () {
-    test('should call repository getWidgets', () async {
+    test('should return local widgets when they exist', () async {
       when(
-        () => mockRepository.getWidgets(),
-      ).thenAnswer((_) async => Success(testWidgets));
-
-      await useCase();
-
-      verify(() => mockRepository.getWidgets()).called(1);
-    });
-
-    test('should return Success with widgets list', () async {
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => true);
       when(
-        () => mockRepository.getWidgets(),
-      ).thenAnswer((_) async => Success(testWidgets));
+        () => mockRepository.getLocalWidgets(),
+      ).thenAnswer((_) async => testWidgets);
 
       final result = await useCase();
 
       expect(result, isA<Success<List<DashboardWidget>>>());
       final widgets = (result as Success<List<DashboardWidget>>).data;
-      expect(widgets.length, 3);
+      expect(widgets.length, 2);
       expect(widgets[0].id, 'widget-1');
-      expect(widgets[1].id, 'widget-2');
-      expect(widgets[2].id, 'widget-3');
+      verify(() => mockRepository.hasLocalWidgets()).called(1);
+      verify(() => mockRepository.getLocalWidgets()).called(1);
+      verifyNever(() => mockRepository.fetchRemoteWidgets());
     });
 
-    test('should return Success with empty list when no widgets', () async {
+    test('should fetch from remote and cache when no local widgets', () async {
       when(
-        () => mockRepository.getWidgets(),
-      ).thenAnswer((_) async => const Success(<DashboardWidget>[]));
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockRepository.fetchRemoteWidgets(),
+      ).thenAnswer((_) async => remoteWidgets);
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
+
+      final result = await useCase();
+
+      expect(result, isA<Success<List<DashboardWidget>>>());
+      final widgets = (result as Success<List<DashboardWidget>>).data;
+      expect(widgets.length, 1);
+      expect(widgets[0].id, 'remote-1');
+      verify(() => mockRepository.fetchRemoteWidgets()).called(1);
+      verify(() => mockRepository.saveWidgets(any())).called(1);
+    });
+
+    test('should return empty list when no widgets available', () async {
+      when(
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockRepository.fetchRemoteWidgets(),
+      ).thenAnswer((_) async => []);
+      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
       final result = await useCase();
 
@@ -74,36 +98,49 @@ void main() {
       expect((result as Success<List<DashboardWidget>>).data, isEmpty);
     });
 
-    test('should return Failure when repository fails', () async {
-      when(() => mockRepository.getWidgets()).thenAnswer(
-        (_) async =>
-            const Failure('Failed to load widgets', type: FailureType.cache),
-      );
+    test('should return Failure when hasLocalWidgets throws', () async {
+      when(
+        () => mockRepository.hasLocalWidgets(),
+      ).thenThrow(Exception('Database error'));
 
       final result = await useCase();
 
       expect(result, isA<Failure<List<DashboardWidget>>>());
-      final failure = result as Failure<List<DashboardWidget>>;
-      expect(failure.message, 'Failed to load widgets');
-      expect(failure.type, FailureType.cache);
+      expect((result as Failure).type, FailureType.cache);
     });
 
-    test('should return unknown failure on unexpected error', () async {
-      when(() => mockRepository.getWidgets()).thenAnswer(
-        (_) async =>
-            const Failure('Unexpected error', type: FailureType.unknown),
-      );
+    test('should return Failure when remote fetch throws', () async {
+      when(
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockRepository.fetchRemoteWidgets(),
+      ).thenThrow(Exception('Network error'));
 
       final result = await useCase();
 
       expect(result, isA<Failure<List<DashboardWidget>>>());
-      expect(
-        (result as Failure<List<DashboardWidget>>).type,
-        FailureType.unknown,
-      );
+      expect((result as Failure).type, FailureType.cache);
     });
 
-    test('should preserve widget order from repository', () async {
+    test('should return Failure when save throws', () async {
+      when(
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockRepository.fetchRemoteWidgets(),
+      ).thenAnswer((_) async => remoteWidgets);
+      when(
+        () => mockRepository.saveWidgets(any()),
+      ).thenThrow(Exception('Save error'));
+
+      final result = await useCase();
+
+      expect(result, isA<Failure<List<DashboardWidget>>>());
+      expect((result as Failure).type, FailureType.cache);
+    });
+
+    test('should preserve widget order from local storage', () async {
       final orderedWidgets = [
         const DashboardWidget(
           id: 'widget-3',
@@ -117,17 +154,14 @@ void main() {
           title: 'Weather',
           position: 1,
         ),
-        const DashboardWidget(
-          id: 'widget-2',
-          type: WidgetType.stockTicker,
-          title: 'Stocks',
-          position: 2,
-        ),
       ];
 
       when(
-        () => mockRepository.getWidgets(),
-      ).thenAnswer((_) async => Success(orderedWidgets));
+        () => mockRepository.hasLocalWidgets(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockRepository.getLocalWidgets(),
+      ).thenAnswer((_) async => orderedWidgets);
 
       final result = await useCase();
 
@@ -135,7 +169,6 @@ void main() {
       final widgets = (result as Success<List<DashboardWidget>>).data;
       expect(widgets[0].id, 'widget-3');
       expect(widgets[1].id, 'widget-1');
-      expect(widgets[2].id, 'widget-2');
     });
   });
 }

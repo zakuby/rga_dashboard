@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:rga_dashboard/core/error/exceptions.dart';
 import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/auth/domain/entities/user.dart';
 import 'package:rga_dashboard/features/auth/domain/repositories/auth_repository.dart';
@@ -24,20 +25,20 @@ void main() {
   );
 
   group('CheckAuthStatusUseCase', () {
-    test('should call repository getCurrentUser', () async {
+    test('should call repository getCachedUser', () async {
       when(
-        () => mockRepository.getCurrentUser(),
-      ).thenAnswer((_) async => Success(testUser));
+        () => mockRepository.getCachedUser(),
+      ).thenAnswer((_) async => testUser);
 
       await useCase();
 
-      verify(() => mockRepository.getCurrentUser()).called(1);
+      verify(() => mockRepository.getCachedUser()).called(1);
     });
 
     test('should return Success with User when user is cached', () async {
       when(
-        () => mockRepository.getCurrentUser(),
-      ).thenAnswer((_) async => Success(testUser));
+        () => mockRepository.getCachedUser(),
+      ).thenAnswer((_) async => testUser);
 
       final result = await useCase();
 
@@ -46,9 +47,7 @@ void main() {
     });
 
     test('should return Success with null when no user is cached', () async {
-      when(
-        () => mockRepository.getCurrentUser(),
-      ).thenAnswer((_) async => const Success<User?>(null));
+      when(() => mockRepository.getCachedUser()).thenAnswer((_) async => null);
 
       final result = await useCase();
 
@@ -56,10 +55,10 @@ void main() {
       expect((result as Success<User?>).data, isNull);
     });
 
-    test('should return Failure when cache access fails', () async {
-      when(() => mockRepository.getCurrentUser()).thenAnswer(
-        (_) async => const Failure('Cache read error', type: FailureType.cache),
-      );
+    test('should return Failure with cache type on CacheException', () async {
+      when(
+        () => mockRepository.getCachedUser(),
+      ).thenThrow(const CacheException('Cache read error'));
 
       final result = await useCase();
 
@@ -69,16 +68,20 @@ void main() {
       expect(failure.type, FailureType.cache);
     });
 
-    test('should return Failure on unknown error', () async {
-      when(() => mockRepository.getCurrentUser()).thenAnswer(
-        (_) async =>
-            const Failure('Unexpected error', type: FailureType.unknown),
-      );
+    test(
+      'should return Failure with unknown type on unexpected error',
+      () async {
+        when(
+          () => mockRepository.getCachedUser(),
+        ).thenThrow(Exception('Unexpected'));
 
-      final result = await useCase();
+        final result = await useCase();
 
-      expect(result, isA<Failure<User?>>());
-      expect((result as Failure<User?>).type, FailureType.unknown);
-    });
+        expect(result, isA<Failure<User?>>());
+        final failure = result as Failure<User?>;
+        expect(failure.type, FailureType.unknown);
+        expect(failure.message, 'Failed to retrieve user session.');
+      },
+    );
   });
 }
