@@ -4,78 +4,44 @@ part of 'auth_cubit.dart';
 enum AuthStatus { initial, loading, authenticated, unauthenticated, failure }
 
 /// State representing the current authentication status.
-final class AuthState extends Equatable {
-  final AuthStatus status;
-  final User? user;
-  final String? errorMessage;
-  final FailureType? failureType;
-  final String? emailError;
-  final String? passwordError;
+@freezed
+class AuthState with _$AuthState {
+  const AuthState._();
 
-  const AuthState({
-    this.status = AuthStatus.initial,
-    this.user,
-    this.errorMessage,
-    this.failureType,
-    this.emailError,
-    this.passwordError,
-  });
-
-  const AuthState.initial() : this();
-
-  const AuthState.loading() : this(status: AuthStatus.loading);
-
-  const AuthState.authenticated(User user)
-    : this(status: AuthStatus.authenticated, user: user);
-
-  const AuthState.unauthenticated() : this(status: AuthStatus.unauthenticated);
-
-  const AuthState.failure({required String message, FailureType? type})
-    : this(
-        status: AuthStatus.failure,
-        errorMessage: message,
-        failureType: type,
-      );
-
-  const AuthState.validationError({String? emailError, String? passwordError})
-    : this(
-        status: AuthStatus.unauthenticated,
-        emailError: emailError,
-        passwordError: passwordError,
-      );
-
-  bool get hasValidationErrors => emailError != null || passwordError != null;
-
-  AuthState copyWith({
-    AuthStatus? status,
+  const factory AuthState({
+    @Default(AuthStatus.initial) AuthStatus status,
     User? user,
     String? errorMessage,
     FailureType? failureType,
     String? emailError,
     String? passwordError,
-    bool clearValidationErrors = false,
-  }) {
-    return AuthState(
-      status: status ?? this.status,
-      user: user ?? this.user,
-      errorMessage: errorMessage ?? this.errorMessage,
-      failureType: failureType ?? this.failureType,
-      emailError: clearValidationErrors
-          ? null
-          : (emailError ?? this.emailError),
-      passwordError: clearValidationErrors
-          ? null
-          : (passwordError ?? this.passwordError),
-    );
-  }
+  }) = _AuthState;
 
-  @override
-  List<Object?> get props => [
-    status,
-    user,
-    errorMessage,
-    failureType,
-    emailError,
-    passwordError,
-  ];
+  factory AuthState.initial() => const AuthState();
+
+  factory AuthState.loading() => const AuthState(status: AuthStatus.loading);
+
+  factory AuthState.authenticated(User user) =>
+      AuthState(status: AuthStatus.authenticated, user: user);
+
+  factory AuthState.unauthenticated() =>
+      const AuthState(status: AuthStatus.unauthenticated);
+
+  factory AuthState.failure({required String message, FailureType? type}) =>
+      AuthState(
+        status: AuthStatus.failure,
+        errorMessage: message,
+        failureType: type,
+      );
+
+  factory AuthState.validationError({
+    String? emailError,
+    String? passwordError,
+  }) => AuthState(
+    status: AuthStatus.unauthenticated,
+    emailError: emailError,
+    passwordError: passwordError,
+  );
+
+  bool get hasValidationErrors => emailError != null || passwordError != null;
 }

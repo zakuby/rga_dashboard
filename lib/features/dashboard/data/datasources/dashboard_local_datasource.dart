@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/database/database_helper.dart';
@@ -20,28 +23,27 @@ abstract class DashboardLocalDataSource {
 }
 
 /// Implementation using SQLite.
+@LazySingleton(as: DashboardLocalDataSource)
 class DashboardLocalDataSourceImpl implements DashboardLocalDataSource {
   @override
   Future<List<DashboardWidgetModel>> getWidgets() async {
     final db = await DatabaseHelper.database;
-    final maps = await db.query(
+    final rows = await db.query(
       DatabaseHelper.tableWidgets,
-      orderBy: 'widget_order ASC',
+      orderBy: 'position ASC',
     );
-
-    return maps.map((map) => DashboardWidgetModel.fromMap(map)).toList();
+    return rows.map(_fromSqlite).toList();
   }
 
   @override
   Future<void> saveWidgets(List<DashboardWidgetModel> widgets) async {
     final db = await DatabaseHelper.database;
-
     await db.transaction((txn) async {
       await txn.delete(DatabaseHelper.tableWidgets);
       for (final widget in widgets) {
         await txn.insert(
           DatabaseHelper.tableWidgets,
-          widget.toMap(),
+          _toSqlite(widget),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
@@ -60,4 +62,15 @@ class DashboardLocalDataSourceImpl implements DashboardLocalDataSource {
     final result = await db.query(DatabaseHelper.tableWidgets, limit: 1);
     return result.isNotEmpty;
   }
+
+  DashboardWidgetModel _fromSqlite(Map<String, dynamic> row) =>
+      DashboardWidgetModel.fromJson({
+        ...row,
+        'data': row['data'] != null ? jsonDecode(row['data'] as String) : null,
+      });
+
+  Map<String, dynamic> _toSqlite(DashboardWidgetModel widget) => {
+    ...widget.toJson(),
+    'data': widget.data != null ? jsonEncode(widget.data!.toJson()) : null,
+  };
 }

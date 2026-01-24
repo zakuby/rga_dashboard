@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rga_dashboard/features/dashboard/data/models/dashboard_widget_model.dart';
 import 'package:rga_dashboard/features/dashboard/domain/entities/dashboard_widget.dart';
@@ -17,182 +15,145 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
-      isVisible: true,
-      widgetData: testWeatherData,
+      position: 0,
+      data: testWeatherData,
     );
-
-    test('should be a subclass of DashboardWidget', () {
-      expect(testModel, isA<DashboardWidget>());
-    });
 
     test('should create model with all properties', () {
       expect(testModel.id, 'widget-1');
       expect(testModel.type, WidgetType.weather);
       expect(testModel.title, 'Weather');
-      expect(testModel.order, 0);
-      expect(testModel.isVisible, true);
-      expect(testModel.widgetData, testWeatherData);
+      expect(testModel.position, 0);
+      expect(testModel.data, testWeatherData);
     });
 
-    test('should default isVisible to true', () {
-      const model = DashboardWidgetModel(
-        id: 'test',
-        type: WidgetType.calendar,
-        title: 'Test',
-        order: 0,
-      );
+    test('should have default values', () {
+      const model = DashboardWidgetModel();
 
-      expect(model.isVisible, true);
+      expect(model.id, '');
+      expect(model.type, WidgetType.weather);
+      expect(model.title, '');
+      expect(model.position, 0);
+      expect(model.data, isNull);
     });
 
-    group('fromMap', () {
-      test('should create model from valid map with weather data', () {
-        final map = {
+    group('fromJson', () {
+      test('should create model from valid json with weather data', () {
+        final json = {
           'id': 'widget-1',
-          'type_index': 0,
+          'type': 'weather',
           'title': 'Weather',
-          'widget_order': 0,
-          'is_visible': 1,
-          'data': jsonEncode({
+          'position': 0,
+          'data': {
+            'type': 'weather',
             'location': 'San Francisco',
             'temperature': 72,
             'condition': 'sunny',
             'humidity': 45,
-          }),
+          },
         };
 
-        final model = DashboardWidgetModel.fromMap(map);
+        final model = DashboardWidgetModel.fromJson(json);
 
         expect(model.id, 'widget-1');
         expect(model.type, WidgetType.weather);
         expect(model.title, 'Weather');
-        expect(model.order, 0);
-        expect(model.isVisible, true);
+        expect(model.position, 0);
         expect(model.weatherData, isNotNull);
         expect(model.weatherData!.location, 'San Francisco');
       });
 
-      test('should create model from map with stock ticker data', () {
-        final map = {
+      test('should create model from json with stock ticker data', () {
+        final json = {
           'id': 'stock-1',
-          'type_index': 1,
+          'type': 'stockTicker',
           'title': 'Stocks',
-          'widget_order': 1,
-          'is_visible': 1,
-          'data': jsonEncode({
+          'position': 1,
+          'data': {
+            'type': 'stockTicker',
             'stocks': [
               {'symbol': 'AAPL', 'price': 178.52, 'change': 2.34},
             ],
-          }),
+          },
         };
 
-        final model = DashboardWidgetModel.fromMap(map);
+        final model = DashboardWidgetModel.fromJson(json);
 
         expect(model.type, WidgetType.stockTicker);
         expect(model.stockTickerData, isNotNull);
         expect(model.stockTickerData!.stocks.first.symbol, 'AAPL');
       });
 
-      test('should create model from map with null data', () {
-        final map = {
+      test('should create model from json with null data', () {
+        final json = {
           'id': 'widget-1',
-          'type_index': 0,
+          'type': 'weather',
           'title': 'Weather',
-          'widget_order': 0,
-          'is_visible': 1,
-          'data': null,
+          'position': 0,
         };
 
-        final model = DashboardWidgetModel.fromMap(map);
+        final model = DashboardWidgetModel.fromJson(json);
 
-        expect(model.widgetData, isNull);
-      });
-
-      test('should handle is_visible as 0', () {
-        final map = {
-          'id': 'widget-1',
-          'type_index': 0,
-          'title': 'Hidden',
-          'widget_order': 0,
-          'is_visible': 0,
-          'data': null,
-        };
-
-        final model = DashboardWidgetModel.fromMap(map);
-
-        expect(model.isVisible, false);
+        expect(model.data, isNull);
       });
 
       test('should parse all widget types', () {
-        for (var i = 0; i < WidgetType.values.length; i++) {
-          final map = {
-            'id': 'widget-$i',
-            'type_index': i,
-            'title': 'Test $i',
-            'widget_order': i,
-            'is_visible': 1,
-            'data': null,
+        for (final widgetType in WidgetType.values) {
+          final json = {
+            'id': 'widget-${widgetType.name}',
+            'type': widgetType.name,
+            'title': 'Test',
+            'position': 0,
           };
 
-          final model = DashboardWidgetModel.fromMap(map);
-          expect(model.type, WidgetType.values[i]);
+          final model = DashboardWidgetModel.fromJson(json);
+          expect(model.type, widgetType);
         }
+      });
+
+      test('should use default for unknown widget type', () {
+        final json = {
+          'id': 'widget-1',
+          'type': 'unknown',
+          'title': 'Test',
+          'position': 0,
+        };
+
+        final model = DashboardWidgetModel.fromJson(json);
+        expect(model.type, WidgetType.weather);
       });
     });
 
-    group('toMap', () {
-      test('should convert model to map', () {
-        final map = testModel.toMap();
+    group('toJson', () {
+      test('should convert model to json', () {
+        final json = testModel.toJson();
 
-        expect(map['id'], 'widget-1');
-        expect(map['type_index'], 0);
-        expect(map['title'], 'Weather');
-        expect(map['widget_order'], 0);
-        expect(map['is_visible'], 1);
-        expect(map['data'], isNotNull);
+        expect(json['id'], 'widget-1');
+        expect(json['type'], 'weather');
+        expect(json['title'], 'Weather');
+        expect(json['position'], 0);
+        expect(json['data'], isNotNull);
       });
 
-      test('should encode widgetData as JSON string', () {
-        final map = testModel.toMap();
+      test('should encode data correctly', () {
+        final json = testModel.toJson();
+        final dataJson = json['data'] as Map<String, dynamic>;
 
-        expect(map['data'], isA<String>());
-        final decoded = jsonDecode(map['data'] as String);
-        expect(decoded['location'], 'San Francisco');
+        expect(dataJson['location'], 'San Francisco');
+        expect(dataJson['temperature'], 72);
       });
 
-      test('should handle null widgetData', () {
+      test('should handle null data', () {
         const model = DashboardWidgetModel(
           id: 'test',
           type: WidgetType.calendar,
           title: 'Test',
-          order: 0,
+          position: 0,
         );
 
-        final map = model.toMap();
+        final json = model.toJson();
 
-        expect(map['data'], isNull);
-      });
-
-      test('should convert isVisible to 1 or 0', () {
-        const visibleModel = DashboardWidgetModel(
-          id: 'test',
-          type: WidgetType.calendar,
-          title: 'Test',
-          order: 0,
-          isVisible: true,
-        );
-
-        const hiddenModel = DashboardWidgetModel(
-          id: 'test',
-          type: WidgetType.calendar,
-          title: 'Test',
-          order: 0,
-          isVisible: false,
-        );
-
-        expect(visibleModel.toMap()['is_visible'], 1);
-        expect(hiddenModel.toMap()['is_visible'], 0);
+        expect(json['data'], isNull);
       });
     });
 
@@ -202,8 +163,7 @@ void main() {
           id: 'entity-1',
           type: WidgetType.quickNotes,
           title: 'Notes',
-          order: 5,
-          isVisible: false,
+          position: 5,
           widgetData: QuickNotesData(notes: ['Note 1']),
         );
 
@@ -212,9 +172,8 @@ void main() {
         expect(model.id, entity.id);
         expect(model.type, entity.type);
         expect(model.title, entity.title);
-        expect(model.order, entity.order);
-        expect(model.isVisible, entity.isVisible);
-        expect(model.widgetData, entity.widgetData);
+        expect(model.position, entity.position);
+        expect(model.data, entity.widgetData);
       });
     });
 
@@ -226,22 +185,20 @@ void main() {
         expect(entity.id, testModel.id);
         expect(entity.type, testModel.type);
         expect(entity.title, testModel.title);
-        expect(entity.order, testModel.order);
-        expect(entity.isVisible, testModel.isVisible);
-        expect(entity.widgetData, testModel.widgetData);
+        expect(entity.position, testModel.position);
+        expect(entity.widgetData, testModel.data);
       });
     });
 
     group('round-trip conversion', () {
-      test('toMap then fromMap should preserve data', () {
-        final map = testModel.toMap();
-        final restored = DashboardWidgetModel.fromMap(map);
+      test('toJson then fromJson should preserve data', () {
+        final json = testModel.toJson();
+        final restored = DashboardWidgetModel.fromJson(json);
 
         expect(restored.id, testModel.id);
         expect(restored.type, testModel.type);
         expect(restored.title, testModel.title);
-        expect(restored.order, testModel.order);
-        expect(restored.isVisible, testModel.isVisible);
+        expect(restored.position, testModel.position);
         expect(restored.weatherData?.location, testModel.weatherData?.location);
       });
 
@@ -250,7 +207,7 @@ void main() {
           id: 'round-trip',
           type: WidgetType.calendar,
           title: 'Calendar',
-          order: 3,
+          position: 3,
           widgetData: CalendarData(
             events: [CalendarEvent(title: 'Event', time: '10:00')],
           ),
@@ -262,6 +219,23 @@ void main() {
         expect(restoredEntity.id, entity.id);
         expect(restoredEntity.type, entity.type);
         expect(restoredEntity.calendarData?.events.first.title, 'Event');
+      });
+    });
+
+    group('type-safe getters', () {
+      test('weatherData getter returns data when type matches', () {
+        expect(testModel.weatherData, isNotNull);
+        expect(testModel.weatherData!.location, 'San Francisco');
+      });
+
+      test('weatherData getter returns null when type does not match', () {
+        const stockModel = DashboardWidgetModel(
+          id: 'test',
+          type: WidgetType.stockTicker,
+          data: StockTickerData(stocks: []),
+        );
+
+        expect(stockModel.weatherData, isNull);
       });
     });
   });

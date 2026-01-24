@@ -48,11 +48,13 @@ This application implements **Clean Architecture** with strict layer separation,
 
 | Principle | Implementation |
 |-----------|----------------|
-| **Dependency Inversion** | Domain layer defines interfaces; Data layer implements them |
+| **Dependency Inversion** | Domain layer defines interfaces; Data layer implements them via `@LazySingleton(as:)` |
 | **Single Responsibility** | Each use case handles exactly one business operation |
-| **Separation of Concerns** | UI logic in state managers, business logic in use cases, data access in repositories |
-| **Immutability** | All entities and state objects are immutable |
-| **Type Safety** | Sealed classes for exhaustive pattern matching on results and states |
+| **Separation of Concerns** | UI logic in Cubits, business logic in use cases, data access in repositories |
+| **Immutability** | Freezed generates immutable classes with `copyWith`, `==`, `hashCode` |
+| **Type Safety** | Freezed union types for exhaustive pattern matching on `WidgetData` variants |
+| **Code Generation** | Freezed for data classes, Injectable for DI, eliminating ~2500+ lines of boilerplate |
+| **Standardized Responses** | `BaseResponse<T>` wrapper for all API responses with consistent error handling |
 
 ---
 
@@ -61,18 +63,29 @@ This application implements **Clean Architecture** with strict layer separation,
 ```
 lib/
 ├── core/
-│   ├── database/              # SQLite configuration
+│   ├── database/              # SQLite configuration (DatabaseHelper)
 │   ├── error/                 # Exception definitions
-│   ├── ui/                    # Atoms, Molecules, Organisms, Theme
+│   ├── network/               # BaseResponse<T>, ErrorResponse, JsonAssetLoader
 │   ├── result/                # Result<T> type (Success/Failure)
-│   └── usecases/              # Base use case contracts
+│   ├── ui/                    # Atomic Design: Atoms, Molecules, Organisms, Theme
+│   └── usecases/              # Base UseCase<Params, Result> contract
 │
 ├── features/{feature_name}/   # auth, dashboard
-│   ├── data/                  # Models, data sources, repository impl
-│   ├── domain/                # Entities, repository contract, use cases
-│   └── presentation/          # Cubit, states, pages, widgets
+│   ├── data/
+│   │   ├── datasources/       # Local (SQLite/Prefs) & Remote (JSON assets)
+│   │   ├── models/            # Freezed DTOs with JSON serialization
+│   │   └── repositories/      # Concrete implementations
+│   ├── domain/
+│   │   ├── entities/          # Freezed domain models
+│   │   ├── repositories/      # Abstract interfaces
+│   │   └── usecases/          # Business operations (@lazySingleton)
+│   └── presentation/
+│       ├── cubit/             # State management (@injectable)
+│       ├── pages/             # Screen widgets
+│       └── widgets/           # Feature-specific components
 │
-└── dependency_injection.dart  # Dependency injection (GetIt)
+├── injection.dart             # Injectable DI configuration
+└── injection.config.dart      # Auto-generated DI graph (*.config.dart)
 ```
 
 ---
@@ -81,6 +94,7 @@ lib/
 
 ```bash
 flutter pub get
+dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
@@ -249,3 +263,99 @@ This section documents key architectural decisions made during development, prov
 - Tests run fast without I/O operations or network calls
 
 **Consequences:** Each layer has dedicated tests: domain tests verify use case logic with mocked repositories, presentation tests verify Cubit state transitions with mocked use cases, and widget tests verify UI rendering with mocked Cubits.
+
+---
+
+### Prompt #9: Code Generation with Freezed & Injectable
+
+**Context:** Clean Architecture introduces significant boilerplate: immutable data classes require manual `copyWith`, `==`, `hashCode`, and JSON serialization; dependency injection requires manual registration of every class.
+
+**Decision:** Adopt Freezed for immutable data classes and Injectable for dependency injection code generation.
+
+**Freezed Benefits:**
+- Immutable data classes with auto-generated `copyWith`, `==`, `hashCode`
+- JSON serialization via `fromJson`/`toJson` with snake_case conversion configured in `build.yaml`
+- Union types for `WidgetData` (weather, stockTicker, calendar, newsSummary, quickNotes)
+- Generic classes like `BaseResponse<T>` with proper serialization
+- Default values with `@Default()` annotation for defensive parsing of missing fields
+
+**Injectable Benefits:**
+- Auto-generated dependency injection graph from annotations
+- `@lazySingleton` for repositories, use cases, and data sources (single instance)
+- `@injectable` for Cubits (new instance per screen)
+- `@LazySingleton(as: Interface)` for binding implementations to interfaces
+
+**Boilerplate Eliminated:**
+- ~2500+ lines of manual code replaced by annotations
+- 11 `.freezed.dart` files for immutable classes
+- 7 `.g.dart` files for JSON serialization
+- 1 `.config.dart` file for dependency injection
+
+**Rationale:**
+- Reduces human error in repetitive equality/serialization implementations
+- Guarantees consistency across all data classes
+- Annotations are self-documenting and IDE-friendly
+- Build runner catches errors at compile time rather than runtime
+
+**Consequences:** Run `dart run build_runner build --delete-conflicting-outputs` after modifying annotated classes. Generated files are committed to version control for CI compatibility.
+
+---
+
+### Prompt #10: Standardized API Response Structure
+
+**Context:** Remote data sources need consistent parsing of API responses, including error handling for failed requests.
+
+**Decision:** Implement `BaseResponse<T>` and `ErrorResponse` as generic Freezed classes for all API responses.
+
+**Structure:**
+```dart
+@Freezed(genericArgumentFactories: true)
+class BaseResponse<T> {
+  bool success;
+  T? data;
+  ErrorResponse? error;
+
+  // Helper getters
+  bool get isError => !success;
+  bool get hasData => data != null;
+  bool get hasError => error != null;
+}
+
+@freezed
+class ErrorResponse {
+  String code;
+  String message;
+}
+```
+
+**Rationale:**
+- Single pattern for all API response handling
+- Generic `<T>` allows type-safe data extraction
+- Helper getters simplify conditional logic in data sources
+- Error structure provides both machine-readable code and human-readable message
+
+**Consequences:** All remote data sources deserialize responses through `BaseResponse<T>`, checking `isError` before extracting `data`. Mock JSON files follow the same structure for consistency.
+
+---
+
+### Prompt #11: Separated JSON Asset Loading
+
+**Context:** Remote data sources mix I/O operations (reading JSON files) with business logic (parsing responses), reducing testability and readability.
+
+**Decision:** Extract asset loading into a dedicated `JsonAssetLoader` class injected into data sources.
+
+**Implementation:**
+```dart
+@lazySingleton
+class JsonAssetLoader {
+  Future<String> loadJsonAsset(String assetPath);
+}
+```
+
+**Rationale:**
+- Single Responsibility: Data sources focus on parsing, not file I/O
+- Testability: Mock `JsonAssetLoader` instead of mocking `rootBundle`
+- Reusability: Same loader used across all remote data sources
+- Readability: Data source methods become concise transformation pipelines
+
+**Consequences:** Remote data sources receive `JsonAssetLoader` via constructor injection. Tests mock the loader to return predefined JSON strings without touching the asset bundle.

@@ -167,13 +167,14 @@ void main() {
       expect(params1, isNot(equals(params2)));
     });
 
-    test('should have correct props for Equatable', () {
+    test('should have correct fields', () {
       const params = LoginParams(
         email: 'test@example.com',
         password: 'password123',
       );
 
-      expect(params.props, ['test@example.com', 'password123']);
+      expect(params.email, 'test@example.com');
+      expect(params.password, 'password123');
     });
   });
 }

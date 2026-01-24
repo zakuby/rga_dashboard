@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/ui/theme/app_colors.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
-import 'dependency_injection.dart';
+import 'injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize dependencies
-  await initDependencies();
+  await configureDependencies();
 
   runApp(const RgaDashboardApp());
 }
@@ -44,7 +45,7 @@ class RgaDashboardApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6750A4),
+        seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -69,7 +70,7 @@ class RgaDashboardApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6750A4),
+        seedColor: AppColors.primary,
         brightness: Brightness.dark,
       ),
       inputDecorationTheme: InputDecorationTheme(

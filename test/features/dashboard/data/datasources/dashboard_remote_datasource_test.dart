@@ -1,94 +1,85 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:rga_dashboard/core/error/exceptions.dart';
+import 'package:rga_dashboard/core/network/network.dart';
 import 'package:rga_dashboard/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'package:rga_dashboard/features/dashboard/domain/entities/dashboard_widget.dart';
 
+class MockJsonAssetLoader extends Mock implements JsonAssetLoader {}
+
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   late DashboardRemoteDataSourceImpl dataSource;
+  late MockJsonAssetLoader mockJsonLoader;
 
-  const mockJsonData = '''
-{
-  "widgets": [
-    {
-      "id": "weather_1",
-      "type": "weather",
-      "title": "Weather",
-      "order": 0,
-      "is_visible": true,
-      "data": {
-        "location": "San Francisco",
-        "temperature": 72,
-        "condition": "sunny",
-        "humidity": 45
-      }
-    },
-    {
-      "id": "stock_1",
-      "type": "stockTicker",
-      "title": "Stock Ticker",
-      "order": 1,
-      "is_visible": true,
-      "data": {
-        "stocks": [
-          {"symbol": "AAPL", "price": 178.52, "change": 2.34}
-        ]
-      }
-    },
-    {
-      "id": "news_1",
-      "type": "newsSummary",
-      "title": "News Summary",
-      "order": 2,
-      "is_visible": true,
-      "data": {
-        "headlines": ["Test Headline 1", "Test Headline 2"]
-      }
-    },
-    {
-      "id": "calendar_1",
-      "type": "calendar",
-      "title": "Calendar",
-      "order": 3,
-      "is_visible": true,
-      "data": {
-        "events": [
-          {"title": "Meeting", "time": "09:00 AM"}
-        ]
-      }
-    },
-    {
-      "id": "notes_1",
-      "type": "quickNotes",
-      "title": "Quick Notes",
-      "order": 4,
-      "is_visible": true,
-      "data": {
-        "notes": ["Test note 1", "Test note 2"]
-      }
-    }
-  ]
-}
-''';
+  final mockSuccessData = {
+    'widgets': [
+      {
+        'id': 'weather_1',
+        'type': 'weather',
+        'title': 'Weather',
+        'position': 0,
+        'data': {
+          'type': 'weather',
+          'location': 'San Francisco',
+          'temperature': 72,
+          'condition': 'sunny',
+          'humidity': 45,
+        },
+      },
+      {
+        'id': 'stock_1',
+        'type': 'stockTicker',
+        'title': 'Stock Ticker',
+        'position': 1,
+        'data': {
+          'type': 'stockTicker',
+          'stocks': [
+            {'symbol': 'AAPL', 'price': 178.52, 'change': 2.34},
+          ],
+        },
+      },
+      {
+        'id': 'news_1',
+        'type': 'newsSummary',
+        'title': 'News Summary',
+        'position': 2,
+        'data': {
+          'type': 'newsSummary',
+          'headlines': ['Test Headline 1', 'Test Headline 2'],
+        },
+      },
+      {
+        'id': 'calendar_1',
+        'type': 'calendar',
+        'title': 'Calendar',
+        'position': 3,
+        'data': {
+          'type': 'calendar',
+          'events': [
+            {'title': 'Meeting', 'time': '09:00 AM'},
+          ],
+        },
+      },
+      {
+        'id': 'notes_1',
+        'type': 'quickNotes',
+        'title': 'Quick Notes',
+        'position': 4,
+        'data': {
+          'type': 'quickNotes',
+          'notes': ['Test note 1', 'Test note 2'],
+        },
+      },
+    ],
+  };
 
   setUp(() {
-    dataSource = DashboardRemoteDataSourceImpl();
+    mockJsonLoader = MockJsonAssetLoader();
+    dataSource = DashboardRemoteDataSourceImpl(mockJsonLoader);
 
-    // Mock the asset bundle
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMessageHandler('flutter/assets', (message) async {
-          final String key = const StringCodec().decodeMessage(message)!;
-          if (key == 'assets/mock/dashboard_data.json') {
-            return const StringCodec().encodeMessage(mockJsonData);
-          }
-          return null;
-        });
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMessageHandler('flutter/assets', null);
+    when(() => mockJsonLoader.load(any())).thenAnswer(
+      (_) async => BaseResponse(success: true, data: mockSuccessData),
+    );
   });
 
   group('DashboardRemoteDataSourceImpl', () {
@@ -97,6 +88,9 @@ void main() {
         final widgets = await dataSource.fetchWidgets();
 
         expect(widgets.length, 5);
+        verify(
+          () => mockJsonLoader.load('assets/mock/dashboard_success.json'),
+        ).called(1);
       });
 
       test('should parse weather widget correctly', () async {
@@ -107,8 +101,7 @@ void main() {
 
         expect(weatherWidget.id, 'weather_1');
         expect(weatherWidget.title, 'Weather');
-        expect(weatherWidget.order, 0);
-        expect(weatherWidget.isVisible, true);
+        expect(weatherWidget.position, 0);
         expect(weatherWidget.weatherData, isNotNull);
         expect(weatherWidget.weatherData!.location, 'San Francisco');
         expect(weatherWidget.weatherData!.temperature, 72);
@@ -170,11 +163,47 @@ void main() {
       test('should return widgets in correct order', () async {
         final widgets = await dataSource.fetchWidgets();
 
-        expect(widgets[0].order, 0);
-        expect(widgets[1].order, 1);
-        expect(widgets[2].order, 2);
-        expect(widgets[3].order, 3);
-        expect(widgets[4].order, 4);
+        expect(widgets[0].position, 0);
+        expect(widgets[1].position, 1);
+        expect(widgets[2].position, 2);
+        expect(widgets[3].position, 3);
+        expect(widgets[4].position, 4);
+      });
+
+      test('should throw ServerException on error response', () async {
+        when(() => mockJsonLoader.load(any())).thenAnswer(
+          (_) async => const BaseResponse(
+            success: false,
+            error: ErrorResponse(
+              code: 'SERVER_ERROR',
+              message: 'Unable to fetch dashboard data',
+            ),
+          ),
+        );
+
+        expect(
+          () => dataSource.fetchWidgets(),
+          throwsA(isA<ServerException>()),
+        );
+      });
+
+      test('should include error message in exception', () async {
+        when(() => mockJsonLoader.load(any())).thenAnswer(
+          (_) async => const BaseResponse(
+            success: false,
+            error: ErrorResponse(
+              code: 'SERVER_ERROR',
+              message: 'Custom error message',
+            ),
+          ),
+        );
+
+        try {
+          await dataSource.fetchWidgets();
+          fail('Should have thrown ServerException');
+        } on ServerException catch (e) {
+          expect(e.message, 'Custom error message');
+        }
       });
     });
   });

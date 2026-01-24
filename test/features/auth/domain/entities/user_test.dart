@@ -104,22 +104,6 @@ void main() {
       expect(user1, isNot(equals(user2)));
     });
 
-    test('should have correct props for Equatable', () {
-      final user = User(
-        id: '123',
-        email: 'test@example.com',
-        name: 'Test User',
-        lastLoginAt: testDateTime,
-      );
-
-      expect(user.props, [
-        '123',
-        'test@example.com',
-        'Test User',
-        testDateTime,
-      ]);
-    });
-
     test('should have same hashCode for equal users', () {
       final user1 = User(
         id: '123',
@@ -135,6 +119,52 @@ void main() {
       );
 
       expect(user1.hashCode, equals(user2.hashCode));
+    });
+
+    test('should support copyWith', () {
+      final user = User(
+        id: '123',
+        email: 'test@example.com',
+        name: 'Test User',
+        lastLoginAt: testDateTime,
+      );
+
+      final updatedUser = user.copyWith(name: 'Updated Name');
+
+      expect(updatedUser.id, '123');
+      expect(updatedUser.email, 'test@example.com');
+      expect(updatedUser.name, 'Updated Name');
+      expect(updatedUser.lastLoginAt, testDateTime);
+    });
+
+    test('should serialize to JSON', () {
+      final user = User(
+        id: '123',
+        email: 'test@example.com',
+        name: 'Test User',
+        lastLoginAt: testDateTime,
+      );
+
+      final json = user.toJson();
+
+      expect(json['id'], '123');
+      expect(json['email'], 'test@example.com');
+      expect(json['name'], 'Test User');
+    });
+
+    test('should deserialize from JSON', () {
+      final json = {
+        'id': '123',
+        'email': 'test@example.com',
+        'name': 'Test User',
+        'last_login_at': testDateTime.toIso8601String(),
+      };
+
+      final user = User.fromJson(json);
+
+      expect(user.id, '123');
+      expect(user.email, 'test@example.com');
+      expect(user.name, 'Test User');
     });
   });
 }

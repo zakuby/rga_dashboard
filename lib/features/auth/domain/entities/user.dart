@@ -1,19 +1,17 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'user.freezed.dart';
+part 'user.g.dart';
 
 /// Domain entity representing an authenticated user.
-class User extends Equatable {
-  final String id;
-  final String email;
-  final String name;
-  final DateTime lastLoginAt;
+@freezed
+class User with _$User {
+  const factory User({
+    required String id,
+    required String email,
+    required String name,
+    required DateTime lastLoginAt,
+  }) = _User;
 
-  const User({
-    required this.id,
-    required this.email,
-    required this.name,
-    required this.lastLoginAt,
-  });
-
-  @override
-  List<Object?> get props => [id, email, name, lastLoginAt];
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }

@@ -18,7 +18,7 @@ void main() {
         id: 'calendar-1',
         type: WidgetType.calendar,
         title: 'Calendar',
-        order: 0,
+        position: 0,
         widgetData: CalendarData(
           events: [
             CalendarEvent(title: 'Team Meeting', time: '09:00 AM'),
@@ -40,7 +40,7 @@ void main() {
         id: 'calendar-1',
         type: WidgetType.calendar,
         title: 'Calendar',
-        order: 0,
+        position: 0,
       );
 
       await tester.pumpWidget(createTestWidget(widget));

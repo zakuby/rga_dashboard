@@ -51,10 +51,9 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE $tableWidgets (
         id TEXT PRIMARY KEY,
-        type_index INTEGER NOT NULL,
+        type TEXT NOT NULL,
         title TEXT NOT NULL,
-        widget_order INTEGER NOT NULL,
-        is_visible INTEGER NOT NULL DEFAULT 1,
+        position INTEGER NOT NULL,
         data TEXT
       )
     ''');

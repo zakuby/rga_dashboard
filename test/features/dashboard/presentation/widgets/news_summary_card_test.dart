@@ -18,7 +18,7 @@ void main() {
         id: 'news-1',
         type: WidgetType.newsSummary,
         title: 'News',
-        order: 0,
+        position: 0,
         widgetData: NewsSummaryData(
           headlines: [
             'Tech stocks surge amid AI boom',
@@ -39,7 +39,7 @@ void main() {
         id: 'news-1',
         type: WidgetType.newsSummary,
         title: 'News',
-        order: 0,
+        position: 0,
       );
 
       await tester.pumpWidget(createTestWidget(widget));

@@ -36,6 +36,11 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Generated code (freezed, json_serializable, injectable)
+*.freezed.dart
+*.g.dart
+*.config.dart
+
 # Symbolication related
 app.*.symbols
 

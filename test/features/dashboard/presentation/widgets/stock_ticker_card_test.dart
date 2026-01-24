@@ -18,7 +18,7 @@ void main() {
         id: 'stocks-1',
         type: WidgetType.stockTicker,
         title: 'Stocks',
-        order: 0,
+        position: 0,
         widgetData: StockTickerData(
           stocks: [
             Stock(symbol: 'AAPL', price: 178.52, change: 2.34),
@@ -39,7 +39,7 @@ void main() {
         id: 'stocks-1',
         type: WidgetType.stockTicker,
         title: 'Stocks',
-        order: 0,
+        position: 0,
       );
 
       await tester.pumpWidget(createTestWidget(widget));

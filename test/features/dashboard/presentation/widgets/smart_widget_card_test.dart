@@ -32,7 +32,7 @@ void main() {
           id: 'widget-${type.name}',
           type: type,
           title: type.name,
-          order: 0,
+          position: 0,
         );
 
         await tester.pumpWidget(createTestWidget(widget));

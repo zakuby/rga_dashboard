@@ -1,5 +1,6 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../../../core/result/result.dart';
 import '../../domain/entities/user.dart';
@@ -7,9 +8,11 @@ import '../../domain/usecases/check_auth_status_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 
+part 'auth_cubit.freezed.dart';
 part 'auth_state.dart';
 
 /// Cubit managing authentication state.
+@injectable
 class AuthCubit extends Cubit<AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
@@ -22,13 +25,13 @@ class AuthCubit extends Cubit<AuthState> {
   }) : _loginUseCase = loginUseCase,
        _logoutUseCase = logoutUseCase,
        _checkAuthStatusUseCase = checkAuthStatusUseCase,
-       super(const AuthState.initial());
+       super(AuthState.initial());
 
   static final _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
   /// Checks if user is already logged in.
   Future<void> checkAuthStatus() async {
-    emit(const AuthState.loading());
+    emit(AuthState.loading());
 
     final result = await _checkAuthStatusUseCase();
 
@@ -37,10 +40,10 @@ class AuthCubit extends Cubit<AuthState> {
         if (user != null) {
           emit(AuthState.authenticated(user));
         } else {
-          emit(const AuthState.unauthenticated());
+          emit(AuthState.unauthenticated());
         }
       },
-      onFailure: (_) => emit(const AuthState.unauthenticated()),
+      onFailure: (_) => emit(AuthState.unauthenticated()),
     );
   }
 
@@ -61,7 +64,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     // Clear validation errors and proceed with login
-    emit(const AuthState.loading());
+    emit(AuthState.loading());
 
     final result = await _loginUseCase(
       LoginParams(email: email, password: password),
@@ -77,18 +80,18 @@ class AuthCubit extends Cubit<AuthState> {
   /// Clears validation errors when user starts typing.
   void clearValidationErrors() {
     if (state.hasValidationErrors) {
-      emit(state.copyWith(clearValidationErrors: true));
+      emit(state.copyWith(emailError: null, passwordError: null));
     }
   }
 
   /// Logs out the current user.
   Future<void> logout() async {
-    emit(const AuthState.loading());
+    emit(AuthState.loading());
 
     final result = await _logoutUseCase();
 
     result.fold(
-      onSuccess: (_) => emit(const AuthState.unauthenticated()),
+      onSuccess: (_) => emit(AuthState.unauthenticated()),
       onFailure: (failure) =>
           emit(AuthState.failure(message: failure.message, type: failure.type)),
     );

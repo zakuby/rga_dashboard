@@ -45,14 +45,13 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather Widget',
-        order: 0,
+        position: 0,
       );
 
       expect(widget.id, 'widget-1');
       expect(widget.type, WidgetType.weather);
       expect(widget.title, 'Weather Widget');
-      expect(widget.order, 0);
-      expect(widget.isVisible, true);
+      expect(widget.position, 0);
       expect(widget.widgetData, isNull);
     });
 
@@ -61,16 +60,14 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 1,
-        isVisible: false,
+        position: 1,
         widgetData: weatherData,
       );
 
       expect(widget.id, 'widget-1');
       expect(widget.type, WidgetType.weather);
       expect(widget.title, 'Weather');
-      expect(widget.order, 1);
-      expect(widget.isVisible, false);
+      expect(widget.position, 1);
       expect(widget.widgetData, weatherData);
     });
 
@@ -79,7 +76,7 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
         widgetData: weatherData,
       );
 
@@ -93,7 +90,7 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
         widgetData: weatherData,
       );
 
@@ -108,16 +105,14 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
-        isVisible: true,
+        position: 0,
         widgetData: weatherData,
       );
       const widget2 = DashboardWidget(
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
-        isVisible: true,
+        position: 0,
         widgetData: weatherData,
       );
 
@@ -129,13 +124,13 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
       );
       const widget2 = DashboardWidget(
         id: 'widget-2',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
       );
 
       expect(widget1, isNot(equals(widget2)));
@@ -146,8 +141,7 @@ void main() {
         id: 'widget-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
-        isVisible: true,
+        position: 0,
         widgetData: weatherData,
       );
 
@@ -194,47 +188,6 @@ void main() {
       expect(data.humidity, 45);
     });
 
-    test('should convert to map correctly', () {
-      const data = WeatherData(
-        location: 'San Francisco',
-        temperature: 72,
-        condition: 'sunny',
-        humidity: 45,
-      );
-
-      final map = data.toMap();
-
-      expect(map['location'], 'San Francisco');
-      expect(map['temperature'], 72);
-      expect(map['condition'], 'sunny');
-      expect(map['humidity'], 45);
-    });
-
-    test('should create from map correctly', () {
-      final map = {
-        'location': 'New York',
-        'temperature': 65,
-        'condition': 'cloudy',
-        'humidity': 60,
-      };
-
-      final data = WeatherData.fromMap(map);
-
-      expect(data.location, 'New York');
-      expect(data.temperature, 65);
-      expect(data.condition, 'cloudy');
-      expect(data.humidity, 60);
-    });
-
-    test('should handle missing map values with defaults', () {
-      final data = WeatherData.fromMap({});
-
-      expect(data.location, 'Unknown');
-      expect(data.temperature, 0);
-      expect(data.condition, 'sunny');
-      expect(data.humidity, 0);
-    });
-
     test('should support equality', () {
       const data1 = WeatherData(
         location: 'SF',
@@ -262,20 +215,20 @@ void main() {
       expect(stock.change, 2.34);
     });
 
-    test('should convert to map correctly', () {
+    test('should convert to json correctly', () {
       const stock = Stock(symbol: 'AAPL', price: 178.52, change: 2.34);
 
-      final map = stock.toMap();
+      final json = stock.toJson();
 
-      expect(map['symbol'], 'AAPL');
-      expect(map['price'], 178.52);
-      expect(map['change'], 2.34);
+      expect(json['symbol'], 'AAPL');
+      expect(json['price'], 178.52);
+      expect(json['change'], 2.34);
     });
 
-    test('should create from map correctly', () {
-      final map = {'symbol': 'GOOGL', 'price': 141.23, 'change': -1.12};
+    test('should create from json correctly', () {
+      final json = {'symbol': 'GOOGL', 'price': 141.23, 'change': -1.12};
 
-      final stock = Stock.fromMap(map);
+      final stock = Stock.fromJson(json);
 
       expect(stock.symbol, 'GOOGL');
       expect(stock.price, 141.23);
@@ -296,30 +249,6 @@ void main() {
       expect(data.stocks[0].symbol, 'AAPL');
       expect(data.stocks[1].symbol, 'GOOGL');
     });
-
-    test('should convert to map correctly', () {
-      const data = StockTickerData(
-        stocks: [Stock(symbol: 'AAPL', price: 178.52, change: 2.34)],
-      );
-
-      final map = data.toMap();
-
-      expect(map['stocks'], isA<List>());
-      expect((map['stocks'] as List).first['symbol'], 'AAPL');
-    });
-
-    test('should create from map correctly', () {
-      final map = {
-        'stocks': [
-          {'symbol': 'MSFT', 'price': 378.91, 'change': 4.56},
-        ],
-      };
-
-      final data = StockTickerData.fromMap(map);
-
-      expect(data.stocks.length, 1);
-      expect(data.stocks[0].symbol, 'MSFT');
-    });
   });
 
   group('NewsSummaryData', () {
@@ -328,24 +257,6 @@ void main() {
 
       expect(data.headlines.length, 2);
       expect(data.headlines[0], 'Headline 1');
-    });
-
-    test('should convert to map correctly', () {
-      const data = NewsSummaryData(headlines: ['Test headline']);
-
-      final map = data.toMap();
-
-      expect(map['headlines'], ['Test headline']);
-    });
-
-    test('should create from map correctly', () {
-      final map = {
-        'headlines': ['News 1', 'News 2'],
-      };
-
-      final data = NewsSummaryData.fromMap(map);
-
-      expect(data.headlines.length, 2);
     });
   });
 
@@ -357,13 +268,13 @@ void main() {
       expect(event.time, '09:00 AM');
     });
 
-    test('should convert to map correctly', () {
+    test('should convert to json correctly', () {
       const event = CalendarEvent(title: 'Meeting', time: '09:00 AM');
 
-      final map = event.toMap();
+      final json = event.toJson();
 
-      expect(map['title'], 'Meeting');
-      expect(map['time'], '09:00 AM');
+      expect(json['title'], 'Meeting');
+      expect(json['time'], '09:00 AM');
     });
   });
 
@@ -379,17 +290,6 @@ void main() {
       expect(data.events.length, 2);
       expect(data.events[0].title, 'Meeting');
     });
-
-    test('should convert to map correctly', () {
-      const data = CalendarData(
-        events: [CalendarEvent(title: 'Meeting', time: '09:00 AM')],
-      );
-
-      final map = data.toMap();
-
-      expect(map['events'], isA<List>());
-      expect((map['events'] as List).first['title'], 'Meeting');
-    });
   });
 
   group('QuickNotesData', () {
@@ -398,85 +298,6 @@ void main() {
 
       expect(data.notes.length, 2);
       expect(data.notes[0], 'Note 1');
-    });
-
-    test('should convert to map correctly', () {
-      const data = QuickNotesData(notes: ['Test note']);
-
-      final map = data.toMap();
-
-      expect(map['notes'], ['Test note']);
-    });
-
-    test('should create from map correctly', () {
-      final map = {
-        'notes': ['Note A', 'Note B'],
-      };
-
-      final data = QuickNotesData.fromMap(map);
-
-      expect(data.notes.length, 2);
-    });
-  });
-
-  group('WidgetData.fromMap', () {
-    test('should create WeatherData for weather type', () {
-      final data = WidgetData.fromMap('weather', {
-        'location': 'SF',
-        'temperature': 70,
-        'condition': 'sunny',
-        'humidity': 50,
-      });
-
-      expect(data, isA<WeatherData>());
-    });
-
-    test('should create StockTickerData for stockTicker type', () {
-      final data = WidgetData.fromMap('stockTicker', {
-        'stocks': [
-          {'symbol': 'AAPL', 'price': 100.0, 'change': 1.0},
-        ],
-      });
-
-      expect(data, isA<StockTickerData>());
-    });
-
-    test('should create NewsSummaryData for newsSummary type', () {
-      final data = WidgetData.fromMap('newsSummary', {
-        'headlines': ['Test'],
-      });
-
-      expect(data, isA<NewsSummaryData>());
-    });
-
-    test('should create CalendarData for calendar type', () {
-      final data = WidgetData.fromMap('calendar', {
-        'events': [
-          {'title': 'Test', 'time': '09:00'},
-        ],
-      });
-
-      expect(data, isA<CalendarData>());
-    });
-
-    test('should create QuickNotesData for quickNotes type', () {
-      final data = WidgetData.fromMap('quickNotes', {
-        'notes': ['Test'],
-      });
-
-      expect(data, isA<QuickNotesData>());
-    });
-
-    test('should return null for unknown type', () {
-      final data = WidgetData.fromMap('unknown', {'key': 'value'});
-
-      expect(data, isNull);
-    });
-
-    test('should return null for null map', () {
-      final data = WidgetData.fromMap('weather', null);
-
-      expect(data, isNull);
     });
   });
 }

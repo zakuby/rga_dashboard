@@ -1,47 +1,42 @@
-import 'dart:convert';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/dashboard_widget.dart';
 
-/// Data model for DashboardWidget with SQLite serialization.
-class DashboardWidgetModel extends DashboardWidget {
-  const DashboardWidgetModel({
-    required super.id,
-    required super.type,
-    required super.title,
-    required super.order,
-    super.isVisible = true,
-    super.widgetData,
-  });
+part 'dashboard_widget_model.freezed.dart';
+part 'dashboard_widget_model.g.dart';
 
-  /// Creates a model from a database map.
-  factory DashboardWidgetModel.fromMap(Map<String, dynamic> map) {
-    final type = WidgetType.values[map['type_index'] as int];
-    final dataJson = map['data'] as String?;
-    final dataMap = dataJson != null
-        ? jsonDecode(dataJson) as Map<String, dynamic>
-        : null;
+/// Converts WidgetType enum to/from string for JSON serialization.
+class WidgetTypeConverter implements JsonConverter<WidgetType, String> {
+  const WidgetTypeConverter();
 
-    return DashboardWidgetModel(
-      id: map['id'] as String,
-      type: type,
-      title: map['title'] as String,
-      order: map['widget_order'] as int,
-      isVisible: (map['is_visible'] as int) == 1,
-      widgetData: WidgetData.fromMap(type.name, dataMap),
+  @override
+  WidgetType fromJson(String json) {
+    return WidgetType.values.firstWhere(
+      (e) => e.name == json,
+      orElse: () => WidgetType.weather,
     );
   }
 
-  /// Converts the model to a database map.
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'type_index': type.index,
-      'title': title,
-      'widget_order': order,
-      'is_visible': isVisible ? 1 : 0,
-      'data': widgetData != null ? jsonEncode(widgetData!.toMap()) : null,
-    };
-  }
+  @override
+  String toJson(WidgetType object) => object.name;
+}
+
+/// Data model for DashboardWidget with JSON serialization.
+/// Fields have defaults for defensive parsing of remote data.
+@freezed
+class DashboardWidgetModel with _$DashboardWidgetModel {
+  const DashboardWidgetModel._();
+
+  const factory DashboardWidgetModel({
+    @Default('') String id,
+    @WidgetTypeConverter() @Default(WidgetType.weather) WidgetType type,
+    @Default('') String title,
+    @Default(0) int position,
+    WidgetData? data,
+  }) = _DashboardWidgetModel;
+
+  factory DashboardWidgetModel.fromJson(Map<String, dynamic> json) =>
+      _$DashboardWidgetModelFromJson(json);
 
   /// Creates a model from a domain entity.
   factory DashboardWidgetModel.fromEntity(DashboardWidget widget) {
@@ -49,9 +44,8 @@ class DashboardWidgetModel extends DashboardWidget {
       id: widget.id,
       type: widget.type,
       title: widget.title,
-      order: widget.order,
-      isVisible: widget.isVisible,
-      widgetData: widget.widgetData,
+      position: widget.position,
+      data: widget.widgetData,
     );
   }
 
@@ -61,9 +55,28 @@ class DashboardWidgetModel extends DashboardWidget {
       id: id,
       type: type,
       title: title,
-      order: order,
-      isVisible: isVisible,
-      widgetData: widgetData,
+      position: position,
+      widgetData: data,
     );
   }
+
+  /// Type-safe getter for weather data.
+  WeatherData? get weatherData =>
+      data is WeatherData ? data as WeatherData : null;
+
+  /// Type-safe getter for stock ticker data.
+  StockTickerData? get stockTickerData =>
+      data is StockTickerData ? data as StockTickerData : null;
+
+  /// Type-safe getter for news summary data.
+  NewsSummaryData? get newsSummaryData =>
+      data is NewsSummaryData ? data as NewsSummaryData : null;
+
+  /// Type-safe getter for calendar data.
+  CalendarData? get calendarData =>
+      data is CalendarData ? data as CalendarData : null;
+
+  /// Type-safe getter for quick notes data.
+  QuickNotesData? get quickNotesData =>
+      data is QuickNotesData ? data as QuickNotesData : null;
 }

@@ -23,7 +23,7 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
+      position: 0,
       widgetData: WeatherData(
         location: 'San Francisco',
         temperature: 72,
@@ -35,7 +35,7 @@ void main() {
       id: 'widget-2',
       type: WidgetType.stockTicker,
       title: 'Stocks',
-      order: 1,
+      position: 1,
     ),
   ];
 
@@ -50,9 +50,7 @@ void main() {
     mockDashboardCubit = MockDashboardCubit();
     mockAuthCubit = MockAuthCubit();
 
-    when(
-      () => mockDashboardCubit.state,
-    ).thenReturn(const DashboardState.initial());
+    when(() => mockDashboardCubit.state).thenReturn(DashboardState.initial());
     when(
       () => mockAuthCubit.state,
     ).thenReturn(AuthState.authenticated(testUser));
@@ -74,9 +72,7 @@ void main() {
     testWidgets('renders loading view when state is initial or loading', (
       tester,
     ) async {
-      when(
-        () => mockDashboardCubit.state,
-      ).thenReturn(const DashboardState.loading());
+      when(() => mockDashboardCubit.state).thenReturn(DashboardState.loading());
       await tester.pumpWidget(createTestWidget());
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -84,7 +80,7 @@ void main() {
     testWidgets('renders error view when state is failure', (tester) async {
       when(
         () => mockDashboardCubit.state,
-      ).thenReturn(const DashboardState.failure('Test error'));
+      ).thenReturn(DashboardState.failure('Test error'));
       when(() => mockDashboardCubit.loadWidgets()).thenAnswer((_) async {});
 
       await tester.pumpWidget(createTestWidget());
@@ -112,7 +108,7 @@ void main() {
     testWidgets('renders empty message when no widgets', (tester) async {
       when(
         () => mockDashboardCubit.state,
-      ).thenReturn(const DashboardState.loaded([]));
+      ).thenReturn(DashboardState.loaded([]));
 
       await tester.pumpWidget(createTestWidget());
 

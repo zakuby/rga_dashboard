@@ -25,19 +25,19 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
+      position: 0,
     ),
     const DashboardWidget(
       id: 'widget-2',
       type: WidgetType.stockTicker,
       title: 'Stocks',
-      order: 1,
+      position: 1,
     ),
     const DashboardWidget(
       id: 'widget-3',
       type: WidgetType.calendar,
       title: 'Calendar',
-      order: 2,
+      position: 2,
     ),
   ];
 
@@ -59,17 +59,17 @@ void main() {
         return const Success(true);
       });
 
-      // Reorder: widget-3 first, then widget-1, then widget-2
+      // Reposition: widget-3 first, then widget-1, then widget-2
       final reorderedList = [testWidgets[2], testWidgets[0], testWidgets[1]];
       await useCase(ReorderParams(reorderedList));
 
       expect(capturedWidgets, isNotNull);
       expect(capturedWidgets![0].id, 'widget-3');
-      expect(capturedWidgets![0].order, 0);
+      expect(capturedWidgets![0].position, 0);
       expect(capturedWidgets![1].id, 'widget-1');
-      expect(capturedWidgets![1].order, 1);
+      expect(capturedWidgets![1].position, 1);
       expect(capturedWidgets![2].id, 'widget-2');
-      expect(capturedWidgets![2].order, 2);
+      expect(capturedWidgets![2].position, 2);
     });
 
     test('should return Success when save succeeds', () async {
@@ -120,7 +120,7 @@ void main() {
 
       expect(capturedWidgets, isNotNull);
       expect(capturedWidgets!.length, 1);
-      expect(capturedWidgets![0].order, 0);
+      expect(capturedWidgets![0].position, 0);
     });
 
     test('should preserve widget properties except order', () async {
@@ -135,8 +135,7 @@ void main() {
         id: 'widget-data',
         type: WidgetType.quickNotes,
         title: 'Notes',
-        order: 5,
-        isVisible: false,
+        position: 5,
         widgetData: notesData,
       );
 
@@ -146,8 +145,7 @@ void main() {
       expect(capturedWidgets![0].id, 'widget-data');
       expect(capturedWidgets![0].type, WidgetType.quickNotes);
       expect(capturedWidgets![0].title, 'Notes');
-      expect(capturedWidgets![0].order, 0); // Updated
-      expect(capturedWidgets![0].isVisible, false);
+      expect(capturedWidgets![0].position, 0); // Updated
       expect(capturedWidgets![0].widgetData, notesData);
       expect(capturedWidgets![0].quickNotesData?.notes, ['test note']);
     });
@@ -182,10 +180,10 @@ void main() {
       expect(params1, isNot(equals(params2)));
     });
 
-    test('should have correct props for Equatable', () {
+    test('should have correct fields', () {
       final params = ReorderParams(testWidgets);
 
-      expect(params.props, [testWidgets]);
+      expect(params.widgets, testWidgets);
     });
 
     test('should handle empty list', () {

@@ -17,9 +17,7 @@ void main() {
 
   setUp(() {
     mockAuthCubit = MockAuthCubit();
-    when(
-      () => mockAuthCubit.state,
-    ).thenReturn(const AuthState.unauthenticated());
+    when(() => mockAuthCubit.state).thenReturn(AuthState.unauthenticated());
     when(
       () => mockAuthCubit.login(
         email: any(named: 'email'),
@@ -72,7 +70,7 @@ void main() {
 
     testWidgets('displays validation errors from state', (tester) async {
       when(() => mockAuthCubit.state).thenReturn(
-        const AuthState.validationError(
+        AuthState.validationError(
           emailError: 'Please enter your email',
           passwordError: 'Please enter your password',
         ),
@@ -98,7 +96,7 @@ void main() {
     testWidgets('shows loading indicator when state is loading', (
       tester,
     ) async {
-      when(() => mockAuthCubit.state).thenReturn(const AuthState.loading());
+      when(() => mockAuthCubit.state).thenReturn(AuthState.loading());
 
       await tester.pumpWidget(createTestWidget());
 
@@ -116,13 +114,13 @@ void main() {
       whenListen(
         mockAuthCubit,
         statesController.stream,
-        initialState: const AuthState.unauthenticated(),
+        initialState: AuthState.unauthenticated(),
       );
 
       await tester.pumpWidget(createTestWidget());
 
       statesController.add(
-        const AuthState.failure(
+        AuthState.failure(
           message: 'Invalid email or password',
           type: FailureType.authentication,
         ),

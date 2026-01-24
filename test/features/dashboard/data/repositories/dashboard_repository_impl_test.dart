@@ -23,8 +23,8 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
-      widgetData: WeatherData(
+      position: 0,
+      data: WeatherData(
         location: 'Test City',
         temperature: 70,
         condition: 'sunny',
@@ -35,7 +35,7 @@ void main() {
       id: 'widget-2',
       type: WidgetType.calendar,
       title: 'Calendar',
-      order: 1,
+      position: 1,
     ),
   ];
 
@@ -44,8 +44,8 @@ void main() {
       id: 'remote-1',
       type: WidgetType.weather,
       title: 'Remote Weather',
-      order: 0,
-      widgetData: WeatherData(
+      position: 0,
+      data: WeatherData(
         location: 'Remote City',
         temperature: 80,
         condition: 'cloudy',
@@ -56,7 +56,7 @@ void main() {
       id: 'remote-2',
       type: WidgetType.stockTicker,
       title: 'Remote Stocks',
-      order: 1,
+      position: 1,
     ),
   ];
 
@@ -172,7 +172,7 @@ void main() {
           id: 'entity-1',
           type: WidgetType.weather,
           title: 'Test',
-          order: 0,
+          position: 0,
         );
 
         await repository.saveWidgetOrder([entity]);
@@ -207,7 +207,7 @@ void main() {
           id: 'widget-1',
           type: WidgetType.weather,
           title: 'Updated Weather',
-          order: 0,
+          position: 0,
         );
 
         final result = await repository.updateWidget(updatedWidget);
@@ -229,7 +229,7 @@ void main() {
           id: 'non-existent',
           type: WidgetType.weather,
           title: 'Test',
-          order: 0,
+          position: 0,
         );
 
         final result = await repository.updateWidget(nonExistentWidget);
@@ -247,7 +247,7 @@ void main() {
           id: 'widget-1',
           type: WidgetType.weather,
           title: 'Test',
-          order: 0,
+          position: 0,
         );
 
         final result = await repository.updateWidget(widget);

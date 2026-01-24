@@ -1,3 +1,5 @@
+import 'package:injectable/injectable.dart';
+
 import '../../../../core/result/result.dart';
 import '../../domain/entities/dashboard_widget.dart';
 import '../../domain/repositories/dashboard_repository.dart';
@@ -7,6 +9,7 @@ import '../models/dashboard_widget_model.dart';
 
 /// Implementation of [DashboardRepository].
 /// Uses local storage for persistence and remote source for initial data fetch.
+@LazySingleton(as: DashboardRepository)
 class DashboardRepositoryImpl implements DashboardRepository {
   final DashboardLocalDataSource localDataSource;
   final DashboardRemoteDataSource remoteDataSource;

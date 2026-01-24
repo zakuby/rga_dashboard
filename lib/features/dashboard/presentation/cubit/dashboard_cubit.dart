@@ -1,13 +1,16 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/dashboard_widget.dart';
 import '../../domain/usecases/get_widgets_usecase.dart';
 import '../../domain/usecases/reorder_widgets_usecase.dart';
 
+part 'dashboard_cubit.freezed.dart';
 part 'dashboard_state.dart';
 
 /// Cubit managing dashboard state with optimistic UI updates.
+@injectable
 class DashboardCubit extends Cubit<DashboardState> {
   final GetWidgetsUseCase _getWidgetsUseCase;
   final ReorderWidgetsUseCase _reorderWidgetsUseCase;
@@ -17,11 +20,11 @@ class DashboardCubit extends Cubit<DashboardState> {
     required ReorderWidgetsUseCase reorderWidgetsUseCase,
   }) : _getWidgetsUseCase = getWidgetsUseCase,
        _reorderWidgetsUseCase = reorderWidgetsUseCase,
-       super(const DashboardState.initial());
+       super(DashboardState.initial());
 
   /// Loads dashboard widgets.
   Future<void> loadWidgets() async {
-    emit(const DashboardState.loading());
+    emit(DashboardState.loading());
 
     final result = await _getWidgetsUseCase();
 
@@ -47,7 +50,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
     // Update order values
     final reorderedWidgets = currentWidgets.asMap().entries.map((entry) {
-      return entry.value.copyWith(order: entry.key);
+      return entry.value.copyWith(position: entry.key);
     }).toList();
 
     // Emit optimistic state immediately for smooth 60fps feel

@@ -23,10 +23,9 @@ void main() {
           await db.execute('''
             CREATE TABLE ${DatabaseHelper.tableWidgets} (
               id TEXT PRIMARY KEY,
-              type_index INTEGER NOT NULL,
+              type TEXT NOT NULL,
               title TEXT NOT NULL,
-              widget_order INTEGER NOT NULL,
-              is_visible INTEGER NOT NULL DEFAULT 1,
+              position INTEGER NOT NULL,
               data TEXT
             )
           ''');
@@ -47,8 +46,8 @@ void main() {
       id: 'weather_1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
-      widgetData: WeatherData(
+      position: 0,
+      data: WeatherData(
         location: 'Test City',
         temperature: 70,
         condition: 'sunny',
@@ -59,7 +58,7 @@ void main() {
       id: 'stock_1',
       type: WidgetType.stockTicker,
       title: 'Stocks',
-      order: 1,
+      position: 1,
     ),
   ];
 
@@ -80,7 +79,7 @@ void main() {
             id: 'calendar_1',
             type: WidgetType.calendar,
             title: 'Calendar',
-            order: 0,
+            position: 0,
           ),
         ];
         await dataSource.saveWidgets(newWidgets);
@@ -108,21 +107,21 @@ void main() {
             id: 'widget_2',
             type: WidgetType.calendar,
             title: 'Second',
-            order: 1,
+            position: 1,
           ),
           const DashboardWidgetModel(
             id: 'widget_1',
             type: WidgetType.weather,
             title: 'First',
-            order: 0,
+            position: 0,
           ),
         ];
         await dataSource.saveWidgets(unorderedWidgets);
 
         final result = await dataSource.getWidgets();
 
-        expect(result[0].order, 0);
-        expect(result[1].order, 1);
+        expect(result[0].position, 0);
+        expect(result[1].position, 1);
       });
 
       test('should return empty list when no widgets', () async {

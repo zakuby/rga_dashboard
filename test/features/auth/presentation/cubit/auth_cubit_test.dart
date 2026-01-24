@@ -50,7 +50,7 @@ void main() {
 
   group('AuthCubit', () {
     test('initial state is AuthState.initial', () {
-      expect(authCubit.state, const AuthState.initial());
+      expect(authCubit.state, AuthState.initial());
     });
 
     group('checkAuthStatus', () {
@@ -63,10 +63,7 @@ void main() {
           return authCubit;
         },
         act: (cubit) => cubit.checkAuthStatus(),
-        expect: () => [
-          const AuthState.loading(),
-          AuthState.authenticated(testUser),
-        ],
+        expect: () => [AuthState.loading(), AuthState.authenticated(testUser)],
       );
 
       blocTest<AuthCubit, AuthState>(
@@ -78,10 +75,7 @@ void main() {
           return authCubit;
         },
         act: (cubit) => cubit.checkAuthStatus(),
-        expect: () => [
-          const AuthState.loading(),
-          const AuthState.unauthenticated(),
-        ],
+        expect: () => [AuthState.loading(), AuthState.unauthenticated()],
       );
     });
 
@@ -91,9 +85,7 @@ void main() {
         build: () => authCubit,
         act: (cubit) => cubit.login(email: '', password: 'password123'),
         expect: () => [
-          const AuthState.validationError(
-            emailError: 'Please enter your email',
-          ),
+          AuthState.validationError(emailError: 'Please enter your email'),
         ],
       );
 
@@ -103,9 +95,7 @@ void main() {
         act: (cubit) =>
             cubit.login(email: 'invalid-email', password: 'password123'),
         expect: () => [
-          const AuthState.validationError(
-            emailError: 'Please enter a valid email',
-          ),
+          AuthState.validationError(emailError: 'Please enter a valid email'),
         ],
       );
 
@@ -114,7 +104,7 @@ void main() {
         build: () => authCubit,
         act: (cubit) => cubit.login(email: 'test@example.com', password: ''),
         expect: () => [
-          const AuthState.validationError(
+          AuthState.validationError(
             passwordError: 'Please enter your password',
           ),
         ],
@@ -126,7 +116,7 @@ void main() {
         act: (cubit) =>
             cubit.login(email: 'test@example.com', password: '12345'),
         expect: () => [
-          const AuthState.validationError(
+          AuthState.validationError(
             passwordError: 'Password must be at least 6 characters',
           ),
         ],
@@ -144,10 +134,7 @@ void main() {
         },
         act: (cubit) =>
             cubit.login(email: 'test@example.com', password: 'password123'),
-        expect: () => [
-          const AuthState.loading(),
-          AuthState.authenticated(testUser),
-        ],
+        expect: () => [AuthState.loading(), AuthState.authenticated(testUser)],
         verify: (_) {
           verify(
             () => mockLoginUseCase(
@@ -174,8 +161,8 @@ void main() {
         act: (cubit) =>
             cubit.login(email: 'test@example.com', password: 'wrong123'),
         expect: () => [
-          const AuthState.loading(),
-          const AuthState.failure(
+          AuthState.loading(),
+          AuthState.failure(
             message: 'Invalid email or password',
             type: FailureType.authentication,
           ),
@@ -187,9 +174,8 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'clears validation errors when called',
         build: () => authCubit,
-        seed: () => const AuthState.validationError(
-          emailError: 'Please enter your email',
-        ),
+        seed: () =>
+            AuthState.validationError(emailError: 'Please enter your email'),
         act: (cubit) => cubit.clearValidationErrors(),
         expect: () => [const AuthState(status: AuthStatus.unauthenticated)],
       );
@@ -197,7 +183,7 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'does nothing when no validation errors',
         build: () => authCubit,
-        seed: () => const AuthState.unauthenticated(),
+        seed: () => AuthState.unauthenticated(),
         act: (cubit) => cubit.clearValidationErrors(),
         expect: () => [],
       );
@@ -213,36 +199,30 @@ void main() {
           return authCubit;
         },
         act: (cubit) => cubit.logout(),
-        expect: () => [
-          const AuthState.loading(),
-          const AuthState.unauthenticated(),
-        ],
+        expect: () => [AuthState.loading(), AuthState.unauthenticated()],
       );
     });
   });
 
   group('AuthState', () {
     test('hasValidationErrors returns true when errors exist', () {
-      const state = AuthState.validationError(emailError: 'Error');
+      final state = AuthState.validationError(emailError: 'Error');
       expect(state.hasValidationErrors, isTrue);
     });
 
     test('hasValidationErrors returns false when no errors', () {
-      const state = AuthState.unauthenticated();
+      final state = AuthState.unauthenticated();
       expect(state.hasValidationErrors, isFalse);
     });
 
-    test(
-      'copyWith clears validation errors when clearValidationErrors is true',
-      () {
-        const state = AuthState.validationError(
-          emailError: 'Error',
-          passwordError: 'Error',
-        );
-        final cleared = state.copyWith(clearValidationErrors: true);
-        expect(cleared.emailError, isNull);
-        expect(cleared.passwordError, isNull);
-      },
-    );
+    test('copyWith can clear validation errors', () {
+      final state = AuthState.validationError(
+        emailError: 'Error',
+        passwordError: 'Error',
+      );
+      final cleared = state.copyWith(emailError: null, passwordError: null);
+      expect(cleared.emailError, isNull);
+      expect(cleared.passwordError, isNull);
+    });
   });
 }

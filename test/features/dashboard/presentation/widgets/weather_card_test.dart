@@ -18,7 +18,7 @@ void main() {
         id: 'weather-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
         widgetData: WeatherData(
           location: 'San Francisco',
           temperature: 72,
@@ -40,7 +40,7 @@ void main() {
         id: 'weather-1',
         type: WidgetType.weather,
         title: 'Weather',
-        order: 0,
+        position: 0,
       );
 
       await tester.pumpWidget(createTestWidget(widget));

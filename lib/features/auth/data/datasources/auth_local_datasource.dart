@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/database/database_helper.dart';
@@ -19,13 +20,14 @@ abstract class AuthLocalDataSource {
 }
 
 /// Implementation of [AuthLocalDataSource] using SQLite.
+@LazySingleton(as: AuthLocalDataSource)
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> cacheUser(UserModel user) async {
     final db = await DatabaseHelper.database;
     await db.insert(
       DatabaseHelper.tableUsers,
-      user.toMap(),
+      user.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -39,7 +41,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       return null;
     }
 
-    return UserModel.fromMap(maps.first);
+    return UserModel.fromJson(maps.first);
   }
 
   @override

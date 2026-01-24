@@ -4,42 +4,27 @@ part of 'dashboard_cubit.dart';
 enum DashboardStatus { initial, loading, loaded, reordering, failure }
 
 /// State representing the current dashboard state.
-final class DashboardState extends Equatable {
-  final DashboardStatus status;
-  final List<DashboardWidget> widgets;
-  final String? errorMessage;
+@freezed
+class DashboardState with _$DashboardState {
+  const DashboardState._();
 
-  const DashboardState({
-    this.status = DashboardStatus.initial,
-    this.widgets = const [],
-    this.errorMessage,
-  });
-
-  const DashboardState.initial() : this();
-
-  const DashboardState.loading() : this(status: DashboardStatus.loading);
-
-  const DashboardState.loaded(List<DashboardWidget> widgets)
-    : this(status: DashboardStatus.loaded, widgets: widgets);
-
-  const DashboardState.reordering(List<DashboardWidget> widgets)
-    : this(status: DashboardStatus.reordering, widgets: widgets);
-
-  const DashboardState.failure(String message)
-    : this(status: DashboardStatus.failure, errorMessage: message);
-
-  DashboardState copyWith({
-    DashboardStatus? status,
-    List<DashboardWidget>? widgets,
+  const factory DashboardState({
+    @Default(DashboardStatus.initial) DashboardStatus status,
+    @Default([]) List<DashboardWidget> widgets,
     String? errorMessage,
-  }) {
-    return DashboardState(
-      status: status ?? this.status,
-      widgets: widgets ?? this.widgets,
-      errorMessage: errorMessage,
-    );
-  }
+  }) = _DashboardState;
 
-  @override
-  List<Object?> get props => [status, widgets, errorMessage];
+  factory DashboardState.initial() => const DashboardState();
+
+  factory DashboardState.loading() =>
+      const DashboardState(status: DashboardStatus.loading);
+
+  factory DashboardState.loaded(List<DashboardWidget> widgets) =>
+      DashboardState(status: DashboardStatus.loaded, widgets: widgets);
+
+  factory DashboardState.reordering(List<DashboardWidget> widgets) =>
+      DashboardState(status: DashboardStatus.reordering, widgets: widgets);
+
+  factory DashboardState.failure(String message) =>
+      DashboardState(status: DashboardStatus.failure, errorMessage: message);
 }

@@ -1,3 +1,5 @@
+import 'package:injectable/injectable.dart';
+
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/result/result.dart';
 import '../../domain/entities/user.dart';
@@ -7,6 +9,7 @@ import '../datasources/auth_remote_datasource.dart';
 
 /// Implementation of [AuthRepository].
 /// Coordinates between remote and local data sources.
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
@@ -22,15 +25,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final user = await remoteDataSource.login(
+      final userModel = await remoteDataSource.login(
         email: email,
         password: password,
       );
 
       // Cache user for session persistence
-      await localDataSource.cacheUser(user);
+      await localDataSource.cacheUser(userModel);
 
-      return Success(user);
+      return Success(userModel.toEntity());
     } on AuthenticationException catch (e) {
       return Failure(e.message, type: FailureType.authentication);
     } on TimeoutException catch (e) {
@@ -61,8 +64,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Result<User?>> getCurrentUser() async {
     try {
-      final user = await localDataSource.getCachedUser();
-      return Success(user);
+      final userModel = await localDataSource.getCachedUser();
+      return Success(userModel?.toEntity());
     } on CacheException catch (e) {
       return Failure(e.message, type: FailureType.cache);
     } catch (e) {

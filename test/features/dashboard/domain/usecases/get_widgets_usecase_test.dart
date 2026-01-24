@@ -21,19 +21,19 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
+      position: 0,
     ),
     const DashboardWidget(
       id: 'widget-2',
       type: WidgetType.stockTicker,
       title: 'Stocks',
-      order: 1,
+      position: 1,
     ),
     const DashboardWidget(
       id: 'widget-3',
       type: WidgetType.calendar,
       title: 'Calendar',
-      order: 2,
+      position: 2,
     ),
   ];
 
@@ -109,19 +109,19 @@ void main() {
           id: 'widget-3',
           type: WidgetType.calendar,
           title: 'Calendar',
-          order: 0,
+          position: 0,
         ),
         const DashboardWidget(
           id: 'widget-1',
           type: WidgetType.weather,
           title: 'Weather',
-          order: 1,
+          position: 1,
         ),
         const DashboardWidget(
           id: 'widget-2',
           type: WidgetType.stockTicker,
           title: 'Stocks',
-          order: 2,
+          position: 2,
         ),
       ];
 

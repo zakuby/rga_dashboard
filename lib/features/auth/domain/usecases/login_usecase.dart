@@ -1,11 +1,15 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../../../core/result/result.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/user.dart';
 import '../repositories/auth_repository.dart';
 
+part 'login_usecase.freezed.dart';
+
 /// Use case for logging in a user.
+@lazySingleton
 class LoginUseCase implements UseCase<User, LoginParams> {
   final AuthRepository repository;
 
@@ -18,12 +22,8 @@ class LoginUseCase implements UseCase<User, LoginParams> {
 }
 
 /// Parameters required for login.
-class LoginParams extends Equatable {
-  final String email;
-  final String password;
-
-  const LoginParams({required this.email, required this.password});
-
-  @override
-  List<Object?> get props => [email, password];
+@freezed
+class LoginParams with _$LoginParams {
+  const factory LoginParams({required String email, required String password}) =
+      _LoginParams;
 }

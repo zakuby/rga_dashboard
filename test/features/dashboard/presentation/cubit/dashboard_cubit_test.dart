@@ -21,19 +21,19 @@ void main() {
       id: 'widget-1',
       type: WidgetType.weather,
       title: 'Weather',
-      order: 0,
+      position: 0,
     ),
     const DashboardWidget(
       id: 'widget-2',
       type: WidgetType.stockTicker,
       title: 'Stocks',
-      order: 1,
+      position: 1,
     ),
     const DashboardWidget(
       id: 'widget-3',
       type: WidgetType.calendar,
       title: 'Calendar',
-      order: 2,
+      position: 2,
     ),
   ];
 
@@ -56,7 +56,7 @@ void main() {
 
   group('DashboardCubit', () {
     test('initial state should be DashboardState.initial', () {
-      expect(cubit.state, const DashboardState.initial());
+      expect(cubit.state, DashboardState.initial());
       expect(cubit.state.status, DashboardStatus.initial);
       expect(cubit.state.widgets, isEmpty);
     });
@@ -72,7 +72,7 @@ void main() {
         },
         act: (cubit) => cubit.loadWidgets(),
         expect: () => [
-          const DashboardState.loading(),
+          DashboardState.loading(),
           DashboardState.loaded(testWidgets),
         ],
         verify: (_) {
@@ -90,8 +90,8 @@ void main() {
         },
         act: (cubit) => cubit.loadWidgets(),
         expect: () => [
-          const DashboardState.loading(),
-          const DashboardState.failure('Failed to load widgets'),
+          DashboardState.loading(),
+          DashboardState.failure('Failed to load widgets'),
         ],
       );
 
@@ -104,10 +104,7 @@ void main() {
           return cubit;
         },
         act: (cubit) => cubit.loadWidgets(),
-        expect: () => [
-          const DashboardState.loading(),
-          const DashboardState.loaded([]),
-        ],
+        expect: () => [DashboardState.loading(), DashboardState.loaded([])],
       );
     });
 
@@ -125,9 +122,9 @@ void main() {
         expect: () {
           // Widget 0 moves to position 1 (after adjustment)
           final reordered = [
-            testWidgets[1].copyWith(order: 0),
-            testWidgets[0].copyWith(order: 1),
-            testWidgets[2].copyWith(order: 2),
+            testWidgets[1].copyWith(position: 0),
+            testWidgets[0].copyWith(position: 1),
+            testWidgets[2].copyWith(position: 2),
           ];
           return [
             DashboardState.reordering(reordered),
@@ -152,9 +149,9 @@ void main() {
         expect: () {
           // Widget 2 moves to position 0
           final reordered = [
-            testWidgets[2].copyWith(order: 0),
-            testWidgets[0].copyWith(order: 1),
-            testWidgets[1].copyWith(order: 2),
+            testWidgets[2].copyWith(position: 0),
+            testWidgets[0].copyWith(position: 1),
+            testWidgets[1].copyWith(position: 2),
           ];
           return [
             DashboardState.reordering(reordered),
@@ -175,9 +172,9 @@ void main() {
         act: (cubit) => cubit.reorderWidgets(0, 2),
         expect: () {
           final reordered = [
-            testWidgets[1].copyWith(order: 0),
-            testWidgets[0].copyWith(order: 1),
-            testWidgets[2].copyWith(order: 2),
+            testWidgets[1].copyWith(position: 0),
+            testWidgets[0].copyWith(position: 1),
+            testWidgets[2].copyWith(position: 2),
           ];
           return [
             DashboardState.reordering(reordered),
@@ -199,7 +196,7 @@ void main() {
         },
         act: (cubit) => cubit.resetWidgets(),
         expect: () => [
-          const DashboardState.loading(),
+          DashboardState.loading(),
           DashboardState.loaded(testWidgets),
         ],
         verify: (_) {
@@ -211,14 +208,14 @@ void main() {
 
   group('DashboardState', () {
     test('initial state has correct values', () {
-      const state = DashboardState.initial();
+      final state = DashboardState.initial();
       expect(state.status, DashboardStatus.initial);
       expect(state.widgets, isEmpty);
       expect(state.errorMessage, isNull);
     });
 
     test('loading state has correct status', () {
-      const state = DashboardState.loading();
+      final state = DashboardState.loading();
       expect(state.status, DashboardStatus.loading);
       expect(state.widgets, isEmpty);
     });
@@ -236,7 +233,7 @@ void main() {
     });
 
     test('failure state contains error message', () {
-      const state = DashboardState.failure('Error occurred');
+      final state = DashboardState.failure('Error occurred');
       expect(state.status, DashboardStatus.failure);
       expect(state.errorMessage, 'Error occurred');
     });
@@ -266,15 +263,17 @@ void main() {
 
     test('states with different values are not equal', () {
       final state1 = DashboardState.loaded(testWidgets);
-      const state2 = DashboardState.loading();
+      final state2 = DashboardState.loading();
 
       expect(state1, isNot(equals(state2)));
     });
 
-    test('props contains all fields', () {
+    test('all fields are accessible', () {
       final state = DashboardState.loaded(testWidgets);
 
-      expect(state.props, [DashboardStatus.loaded, testWidgets, null]);
+      expect(state.status, DashboardStatus.loaded);
+      expect(state.widgets, testWidgets);
+      expect(state.errorMessage, isNull);
     });
   });
 

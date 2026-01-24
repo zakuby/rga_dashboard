@@ -1,8 +1,7 @@
-import 'dart:convert';
+import 'package:injectable/injectable.dart';
 
-import 'package:flutter/services.dart';
-
-import '../../domain/entities/dashboard_widget.dart';
+import '../../../../core/error/exceptions.dart';
+import '../../../../core/network/network.dart';
 import '../models/dashboard_widget_model.dart';
 
 /// Remote data source for dashboard widgets.
@@ -13,47 +12,31 @@ abstract class DashboardRemoteDataSource {
 }
 
 /// Implementation using JSON asset files to simulate API responses.
+@LazySingleton(as: DashboardRemoteDataSource)
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
-  static const String _dashboardDataPath = 'assets/mock/dashboard_data.json';
+  final JsonAssetLoader _jsonLoader;
+
+  static const String _dashboardSuccessPath =
+      'assets/mock/dashboard_success.json';
+
+  DashboardRemoteDataSourceImpl(this._jsonLoader);
 
   @override
   Future<List<DashboardWidgetModel>> fetchWidgets() async {
     // Simulate network delay
     await Future<void>.delayed(const Duration(milliseconds: 500));
 
-    final jsonString = await rootBundle.loadString(_dashboardDataPath);
-    final jsonData = json.decode(jsonString) as Map<String, dynamic>;
-    final widgetsJson = jsonData['widgets'] as List<dynamic>;
+    final response = await _jsonLoader.load(_dashboardSuccessPath);
 
-    return widgetsJson.map((widgetJson) {
-      final map = widgetJson as Map<String, dynamic>;
-      return _parseWidget(map);
-    }).toList();
-  }
+    if (!response.success || response.data == null) {
+      throw ServerException(
+        response.error?.message ?? 'Failed to fetch dashboard data',
+      );
+    }
 
-  DashboardWidgetModel _parseWidget(Map<String, dynamic> map) {
-    final typeString = map['type'] as String;
-    final type = _parseWidgetType(typeString);
-    final dataMap = map['data'] as Map<String, dynamic>?;
-
-    return DashboardWidgetModel(
-      id: map['id'] as String,
-      type: type,
-      title: map['title'] as String,
-      order: map['order'] as int,
-      isVisible: map['is_visible'] as bool? ?? true,
-      widgetData: WidgetData.fromMap(typeString, dataMap),
-    );
-  }
-
-  WidgetType _parseWidgetType(String type) {
-    return switch (type) {
-      'weather' => WidgetType.weather,
-      'stockTicker' => WidgetType.stockTicker,
-      'newsSummary' => WidgetType.newsSummary,
-      'calendar' => WidgetType.calendar,
-      'quickNotes' => WidgetType.quickNotes,
-      _ => WidgetType.weather,
-    };
+    final widgetsJson = response.data!['widgets'] as List<dynamic>;
+    return widgetsJson
+        .map((w) => DashboardWidgetModel.fromJson(w as Map<String, dynamic>))
+        .toList();
   }
 }

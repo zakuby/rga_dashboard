@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "user_12345",
+      "email": "test@example.com",
+      "name": "Test User",
+      "last_login_at": "2024-01-24T10:30:00.000Z"
+    }
+  },
+  "error": null
+}

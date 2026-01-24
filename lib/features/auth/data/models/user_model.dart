@@ -1,33 +1,25 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../domain/entities/user.dart';
 
-/// Data model for User with SQLite serialization support.
-class UserModel extends User {
-  const UserModel({
-    required super.id,
-    required super.email,
-    required super.name,
-    required super.lastLoginAt,
-  });
+part 'user_model.freezed.dart';
+part 'user_model.g.dart';
 
-  /// Creates a UserModel from a database map.
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      id: map['id'] as String,
-      email: map['email'] as String,
-      name: map['name'] as String,
-      lastLoginAt: DateTime.parse(map['last_login_at'] as String),
-    );
-  }
+/// Data model for User with JSON serialization support.
+/// Fields have defaults for defensive parsing of remote data.
+@freezed
+class UserModel with _$UserModel {
+  const UserModel._();
 
-  /// Converts the model to a database map.
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'last_login_at': lastLoginAt.toIso8601String(),
-    };
-  }
+  const factory UserModel({
+    @Default('') String id,
+    @Default('') String email,
+    @Default('') String name,
+    DateTime? lastLoginAt,
+  }) = _UserModel;
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 
   /// Creates a UserModel from a User entity.
   factory UserModel.fromEntity(User user) {
@@ -36,6 +28,16 @@ class UserModel extends User {
       email: user.email,
       name: user.name,
       lastLoginAt: user.lastLoginAt,
+    );
+  }
+
+  /// Converts to domain entity.
+  User toEntity() {
+    return User(
+      id: id,
+      email: email,
+      name: name,
+      lastLoginAt: lastLoginAt ?? DateTime.now(),
     );
   }
 }
