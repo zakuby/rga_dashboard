@@ -7,6 +7,14 @@ import 'injection.config.dart';
 /// Global service locator instance.
 final getIt = GetIt.instance;
 
+/// Module for registering external dependencies.
+@module
+abstract class RegisterModule {
+  @preResolve
+  Future<SharedPreferences> get sharedPreferences =>
+      SharedPreferences.getInstance();
+}
+
 /// Initializes all dependencies using injectable.
 @InjectableInit(
   initializerName: 'init',
@@ -14,9 +22,6 @@ final getIt = GetIt.instance;
   asExtension: true,
 )
 Future<void> configureDependencies() async {
-  getIt.registerSingletonAsync<SharedPreferences>(
-    () => SharedPreferences.getInstance(),
-  );
-  await getIt.allReady();
   getIt.init();
+  await getIt.allReady();
 }
