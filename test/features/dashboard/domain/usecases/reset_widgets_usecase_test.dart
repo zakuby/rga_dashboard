@@ -36,31 +36,30 @@ void main() {
   ];
 
   group('ResetWidgetsUseCase', () {
-    test(
-      'should clear cache and fetch fresh widgets',
-      () async {
-        when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-        when(() => mockRepository.getWidgets())
-            .thenAnswer((_) async => freshWidgets);
+    test('should clear cache and fetch fresh widgets', () async {
+      when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => freshWidgets);
 
-        final result = await useCase();
+      final result = await useCase();
 
-        expect(result, isA<Success<List<DashboardWidget>>>());
-        final widgets = (result as Success<List<DashboardWidget>>).data;
-        expect(widgets.length, 2);
-        expect(widgets[0].id, 'fresh-1');
-        expect(widgets[1].id, 'fresh-2');
+      expect(result, isA<Success<List<DashboardWidget>>>());
+      final widgets = (result as Success<List<DashboardWidget>>).data;
+      expect(widgets.length, 2);
+      expect(widgets[0].id, 'fresh-1');
+      expect(widgets[1].id, 'fresh-2');
 
-        verifyInOrder([
-          () => mockRepository.clearWidgets(),
-          () => mockRepository.getWidgets(),
-        ]);
-      },
-    );
+      verifyInOrder([
+        () => mockRepository.clearWidgets(),
+        () => mockRepository.getWidgets(),
+      ]);
+    });
 
     test('should return Failure when clearWidgets throws', () async {
-      when(() => mockRepository.clearWidgets())
-          .thenThrow(Exception('Clear error'));
+      when(
+        () => mockRepository.clearWidgets(),
+      ).thenThrow(Exception('Clear error'));
 
       final result = await useCase();
 
@@ -73,8 +72,9 @@ void main() {
 
     test('should return Failure when getWidgets throws', () async {
       when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-      when(() => mockRepository.getWidgets())
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenThrow(Exception('Network error'));
 
       final result = await useCase();
 

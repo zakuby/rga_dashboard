@@ -43,47 +43,47 @@ void main() {
 
   group('ReorderWidgetsUseCase', () {
     group('index adjustment', () {
-      test('should adjust index when moving forward (oldIndex < newIndex)',
-          () async {
-        List<DashboardWidget>? savedWidgets;
-        when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
-          savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
-        });
+      test(
+        'should adjust index when moving forward (oldIndex < newIndex)',
+        () async {
+          List<DashboardWidget>? savedWidgets;
+          when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
+            savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
+          });
 
-        // Move widget-1 (index 0) to position 2 (after adjustment becomes 1)
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 0,
-          newIndex: 2,
-        ));
+          // Move widget-1 (index 0) to position 2 (after adjustment becomes 1)
+          await useCase(
+            ReorderParams(widgets: testWidgets, oldIndex: 0, newIndex: 2),
+          );
 
-        expect(savedWidgets, isNotNull);
-        // Order should be: widget-2, widget-1, widget-3
-        expect(savedWidgets![0].id, 'widget-2');
-        expect(savedWidgets![1].id, 'widget-1');
-        expect(savedWidgets![2].id, 'widget-3');
-      });
+          expect(savedWidgets, isNotNull);
+          // Order should be: widget-2, widget-1, widget-3
+          expect(savedWidgets![0].id, 'widget-2');
+          expect(savedWidgets![1].id, 'widget-1');
+          expect(savedWidgets![2].id, 'widget-3');
+        },
+      );
 
-      test('should not adjust index when moving backward (oldIndex > newIndex)',
-          () async {
-        List<DashboardWidget>? savedWidgets;
-        when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
-          savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
-        });
+      test(
+        'should not adjust index when moving backward (oldIndex > newIndex)',
+        () async {
+          List<DashboardWidget>? savedWidgets;
+          when(() => mockRepository.saveWidgets(any())).thenAnswer((inv) async {
+            savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
+          });
 
-        // Move widget-3 (index 2) to position 0
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 2,
-          newIndex: 0,
-        ));
+          // Move widget-3 (index 2) to position 0
+          await useCase(
+            ReorderParams(widgets: testWidgets, oldIndex: 2, newIndex: 0),
+          );
 
-        expect(savedWidgets, isNotNull);
-        // Order should be: widget-3, widget-1, widget-2
-        expect(savedWidgets![0].id, 'widget-3');
-        expect(savedWidgets![1].id, 'widget-1');
-        expect(savedWidgets![2].id, 'widget-2');
-      });
+          expect(savedWidgets, isNotNull);
+          // Order should be: widget-3, widget-1, widget-2
+          expect(savedWidgets![0].id, 'widget-3');
+          expect(savedWidgets![1].id, 'widget-1');
+          expect(savedWidgets![2].id, 'widget-2');
+        },
+      );
     });
 
     group('position assignment', () {
@@ -94,11 +94,9 @@ void main() {
         });
 
         // Move widget-1 (index 0) to end
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 0,
-          newIndex: 3,
-        ));
+        await useCase(
+          ReorderParams(widgets: testWidgets, oldIndex: 0, newIndex: 3),
+        );
 
         expect(savedWidgets, isNotNull);
         // Positions should be sequential: 0, 1, 2
@@ -125,16 +123,15 @@ void main() {
           testWidgets[0],
         ];
 
-        await useCase(ReorderParams(
-          widgets: widgetsWithData,
-          oldIndex: 1,
-          newIndex: 0,
-        ));
+        await useCase(
+          ReorderParams(widgets: widgetsWithData, oldIndex: 1, newIndex: 0),
+        );
 
         expect(savedWidgets, isNotNull);
         // widget-data should now be at index 1
-        final notesWidget =
-            savedWidgets!.firstWhere((w) => w.id == 'widget-data');
+        final notesWidget = savedWidgets!.firstWhere(
+          (w) => w.id == 'widget-data',
+        );
         expect(notesWidget.type, WidgetType.quickNotes);
         expect(notesWidget.title, 'Notes');
         expect(notesWidget.widgetData, notesData);
@@ -145,11 +142,9 @@ void main() {
       test('should return Success with reordered widgets', () async {
         when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
-        final result = await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 0,
-          newIndex: 2,
-        ));
+        final result = await useCase(
+          ReorderParams(widgets: testWidgets, oldIndex: 0, newIndex: 2),
+        );
 
         expect(result, isA<Success<List<DashboardWidget>>>());
         final widgets = (result as Success<List<DashboardWidget>>).data;
@@ -160,14 +155,13 @@ void main() {
       });
 
       test('should return Failure when save throws', () async {
-        when(() => mockRepository.saveWidgets(any()))
-            .thenThrow(Exception('Save error'));
+        when(
+          () => mockRepository.saveWidgets(any()),
+        ).thenThrow(Exception('Save error'));
 
-        final result = await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 0,
-          newIndex: 2,
-        ));
+        final result = await useCase(
+          ReorderParams(widgets: testWidgets, oldIndex: 0, newIndex: 2),
+        );
 
         expect(result, isA<Failure<List<DashboardWidget>>>());
         final failure = result as Failure<List<DashboardWidget>>;
@@ -184,11 +178,9 @@ void main() {
         });
 
         final singleWidget = [testWidgets[0]];
-        await useCase(ReorderParams(
-          widgets: singleWidget,
-          oldIndex: 0,
-          newIndex: 0,
-        ));
+        await useCase(
+          ReorderParams(widgets: singleWidget, oldIndex: 0, newIndex: 0),
+        );
 
         expect(savedWidgets, isNotNull);
         expect(savedWidgets!.length, 1);
@@ -201,11 +193,9 @@ void main() {
           savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
         });
 
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 1,
-          newIndex: 1,
-        ));
+        await useCase(
+          ReorderParams(widgets: testWidgets, oldIndex: 1, newIndex: 1),
+        );
 
         expect(savedWidgets, isNotNull);
         // Order should be unchanged
@@ -220,11 +210,13 @@ void main() {
           savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
         });
 
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 0,
-          newIndex: 3, // End of list
-        ));
+        await useCase(
+          ReorderParams(
+            widgets: testWidgets,
+            oldIndex: 0,
+            newIndex: 3, // End of list
+          ),
+        );
 
         expect(savedWidgets, isNotNull);
         // widget-1 should be at the end
@@ -239,11 +231,9 @@ void main() {
           savedWidgets = inv.positionalArguments[0] as List<DashboardWidget>;
         });
 
-        await useCase(ReorderParams(
-          widgets: testWidgets,
-          oldIndex: 2,
-          newIndex: 0,
-        ));
+        await useCase(
+          ReorderParams(widgets: testWidgets, oldIndex: 2, newIndex: 0),
+        );
 
         expect(savedWidgets, isNotNull);
         // widget-3 should be at the start
@@ -256,11 +246,9 @@ void main() {
     test('should call repository saveWidgets', () async {
       when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
-      await useCase(ReorderParams(
-        widgets: testWidgets,
-        oldIndex: 0,
-        newIndex: 2,
-      ));
+      await useCase(
+        ReorderParams(widgets: testWidgets, oldIndex: 0, newIndex: 2),
+      );
 
       verify(() => mockRepository.saveWidgets(any())).called(1);
     });

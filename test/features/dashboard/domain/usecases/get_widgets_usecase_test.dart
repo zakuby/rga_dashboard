@@ -33,8 +33,9 @@ void main() {
 
   group('GetWidgetsUseCase', () {
     test('should return widgets from repository', () async {
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => testWidgets);
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => testWidgets);
 
       final result = await useCase();
 
@@ -55,8 +56,9 @@ void main() {
     });
 
     test('should return Failure when repository throws', () async {
-      when(() => mockRepository.getWidgets())
-          .thenThrow(Exception('Database error'));
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenThrow(Exception('Database error'));
 
       final result = await useCase();
 
@@ -80,8 +82,9 @@ void main() {
         ),
       ];
 
-      when(() => mockRepository.getWidgets())
-          .thenAnswer((_) async => orderedWidgets);
+      when(
+        () => mockRepository.getWidgets(),
+      ).thenAnswer((_) async => orderedWidgets);
 
       final result = await useCase();
 

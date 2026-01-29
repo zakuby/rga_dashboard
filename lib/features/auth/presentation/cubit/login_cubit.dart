@@ -28,10 +28,12 @@ class LoginCubit extends Cubit<LoginState> {
     final passwordValidation = _validator.validatePassword(password);
 
     if (emailValidation.isFailure || passwordValidation.isFailure) {
-      emit(LoginState(
-        emailError: emailValidation.error,
-        passwordError: passwordValidation.error,
-      ));
+      emit(
+        LoginState(
+          emailError: emailValidation.error,
+          passwordError: passwordValidation.error,
+        ),
+      );
       return;
     }
 

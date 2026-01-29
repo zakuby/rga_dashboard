@@ -34,8 +34,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<void> saveWidgets(List<DashboardWidget> widgets) async {
-    final models =
-        widgets.map((w) => DashboardWidgetModel.fromEntity(w)).toList();
+    final models = widgets
+        .map((w) => DashboardWidgetModel.fromEntity(w))
+        .toList();
     await localDataSource.saveWidgets(models);
   }
 
