@@ -10,6 +10,14 @@ part 'dashboard_cubit.freezed.dart';
 part 'dashboard_state.dart';
 
 /// Cubit managing dashboard state with optimistic UI updates.
+///
+/// This cubit handles ONLY presentation concerns:
+/// - Loading state management
+/// - Optimistic UI updates for smooth 60fps feel
+/// - Error handling with rollback
+///
+/// All business logic (reordering algorithm, position calculation)
+/// is delegated to use cases in the domain layer.
 @injectable
 class DashboardCubit extends Cubit<DashboardState> {
   final GetWidgetsUseCase _getWidgetsUseCase;
@@ -35,37 +43,46 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   /// Reorders widgets with optimistic UI update.
+  ///
+  /// UI CONCERN: Shows immediate visual feedback by reordering the list.
+  /// BUSINESS LOGIC: Delegated to [ReorderWidgetsUseCase] which handles
+  /// index adjustment, position assignment, and persistence.
   Future<void> reorderWidgets(int oldIndex, int newIndex) async {
-    final currentWidgets = List<DashboardWidget>.from(state.widgets);
+    // Store original state for potential rollback
+    final originalWidgets = state.widgets;
 
-    // Calculate new index accounting for removal
-    var adjustedNewIndex = newIndex;
-    if (oldIndex < newIndex) {
-      adjustedNewIndex -= 1;
-    }
-
-    // Optimistic UI update
-    final widget = currentWidgets.removeAt(oldIndex);
-    currentWidgets.insert(adjustedNewIndex, widget);
-
-    // Update order values
-    final reorderedWidgets = currentWidgets.asMap().entries.map((entry) {
-      return entry.value.copyWith(position: entry.key);
-    }).toList();
+    // === UI CONCERN: Optimistic preview ===
+    // Create a quick visual preview by simply moving the item in the list.
+    // This is purely for immediate UI feedback (60fps feel).
+    // Note: We use the same algorithm here for preview consistency,
+    // but the authoritative result comes from the use case.
+    final previewWidgets = List<DashboardWidget>.from(originalWidgets);
+    final adjustedIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
+    final widget = previewWidgets.removeAt(oldIndex);
+    previewWidgets.insert(adjustedIndex, widget);
 
     // Emit optimistic state immediately for smooth 60fps feel
-    emit(DashboardState.reordering(reorderedWidgets));
+    emit(DashboardState.reordering(previewWidgets));
 
-    // Persist in background
+    // === DELEGATE TO USE CASE: All business logic ===
+    // The use case handles: index adjustment, position assignment, persistence
     final result = await _reorderWidgetsUseCase(
-      ReorderParams(reorderedWidgets),
+      ReorderParams(
+        widgets: originalWidgets,
+        oldIndex: oldIndex,
+        newIndex: newIndex,
+      ),
     );
 
+    // === UI CONCERN: Handle result ===
     result.fold(
-      onSuccess: (_) => emit(DashboardState.loaded(reorderedWidgets)),
+      onSuccess: (reorderedWidgets) {
+        // Use the authoritative result from use case
+        emit(DashboardState.loaded(reorderedWidgets));
+      },
       onFailure: (failure) {
-        // Revert to original order on failure
-        emit(DashboardState.loaded(state.widgets));
+        // Rollback to original order on failure
+        emit(DashboardState.loaded(originalWidgets));
       },
     );
   }

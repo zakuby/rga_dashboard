@@ -9,24 +9,49 @@ import '../repositories/dashboard_repository.dart';
 part 'reorder_widgets_usecase.freezed.dart';
 
 /// Use case for reordering dashboard widgets.
-/// Updates position values and persists the new order.
+///
+/// This use case contains ALL business logic for reordering:
+/// - Index adjustment algorithm (handling removal offset)
+/// - List reordering operation
+/// - Position value assignment
+/// - Persistence to repository
+///
+/// The presentation layer should only pass raw indices and let this
+/// use case handle the actual reordering logic.
 @lazySingleton
-class ReorderWidgetsUseCase implements UseCase<bool, ReorderParams> {
+class ReorderWidgetsUseCase
+    implements UseCase<List<DashboardWidget>, ReorderParams> {
   final DashboardRepository repository;
 
   const ReorderWidgetsUseCase(this.repository);
 
   @override
-  Future<Result<bool>> call(ReorderParams params) async {
+  Future<Result<List<DashboardWidget>>> call(ReorderParams params) async {
     try {
-      // Update position values based on new list order
-      final reorderedWidgets = <DashboardWidget>[];
-      for (var i = 0; i < params.widgets.length; i++) {
-        reorderedWidgets.add(params.widgets[i].copyWith(position: i));
+      // === BUSINESS LOGIC: Index adjustment ===
+      // When moving an item forward in a list, removing it shifts
+      // all subsequent items down by 1, so we adjust the target index.
+      var adjustedNewIndex = params.newIndex;
+      if (params.oldIndex < params.newIndex) {
+        adjustedNewIndex -= 1;
       }
 
+      // === BUSINESS LOGIC: List reordering ===
+      final widgets = List<DashboardWidget>.from(params.widgets);
+      final widget = widgets.removeAt(params.oldIndex);
+      widgets.insert(adjustedNewIndex, widget);
+
+      // === BUSINESS LOGIC: Position assignment ===
+      // Each widget's position field must match its index in the list
+      // for correct ordering when loaded from persistence.
+      final reorderedWidgets = widgets.asMap().entries.map((entry) {
+        return entry.value.copyWith(position: entry.key);
+      }).toList();
+
+      // === DATA OPERATION: Persist to repository ===
       await repository.saveWidgets(reorderedWidgets);
-      return const Success(true);
+
+      return Success(reorderedWidgets);
     } catch (e) {
       return Failure(
         'Failed to save widget order: ${e.toString()}',
@@ -37,7 +62,16 @@ class ReorderWidgetsUseCase implements UseCase<bool, ReorderParams> {
 }
 
 /// Parameters for reordering widgets.
+///
+/// Contains the raw inputs needed for reordering:
+/// - [widgets]: The current list of widgets before reordering
+/// - [oldIndex]: The original position of the widget being moved
+/// - [newIndex]: The target position (before removal adjustment)
 @freezed
 class ReorderParams with _$ReorderParams {
-  const factory ReorderParams(List<DashboardWidget> widgets) = _ReorderParams;
+  const factory ReorderParams({
+    required List<DashboardWidget> widgets,
+    required int oldIndex,
+    required int newIndex,
+  }) = _ReorderParams;
 }

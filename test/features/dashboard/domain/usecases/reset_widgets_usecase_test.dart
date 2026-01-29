@@ -37,13 +37,11 @@ void main() {
 
   group('ResetWidgetsUseCase', () {
     test(
-      'should clear cache, fetch remote, save, and return widgets',
+      'should clear cache and fetch fresh widgets',
       () async {
         when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-        when(
-          () => mockRepository.fetchRemoteWidgets(),
-        ).thenAnswer((_) async => freshWidgets);
-        when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
+        when(() => mockRepository.getWidgets())
+            .thenAnswer((_) async => freshWidgets);
 
         final result = await useCase();
 
@@ -55,16 +53,14 @@ void main() {
 
         verifyInOrder([
           () => mockRepository.clearWidgets(),
-          () => mockRepository.fetchRemoteWidgets(),
-          () => mockRepository.saveWidgets(any()),
+          () => mockRepository.getWidgets(),
         ]);
       },
     );
 
     test('should return Failure when clearWidgets throws', () async {
-      when(
-        () => mockRepository.clearWidgets(),
-      ).thenThrow(Exception('Clear error'));
+      when(() => mockRepository.clearWidgets())
+          .thenThrow(Exception('Clear error'));
 
       final result = await useCase();
 
@@ -72,15 +68,13 @@ void main() {
       final failure = result as Failure<List<DashboardWidget>>;
       expect(failure.type, FailureType.cache);
       expect(failure.message, contains('Failed to reset widgets'));
-      verifyNever(() => mockRepository.fetchRemoteWidgets());
-      verifyNever(() => mockRepository.saveWidgets(any()));
+      verifyNever(() => mockRepository.getWidgets());
     });
 
-    test('should return Failure when fetchRemoteWidgets throws', () async {
+    test('should return Failure when getWidgets throws', () async {
       when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-      when(
-        () => mockRepository.fetchRemoteWidgets(),
-      ).thenThrow(Exception('Network error'));
+      when(() => mockRepository.getWidgets())
+          .thenThrow(Exception('Network error'));
 
       final result = await useCase();
 
@@ -89,50 +83,16 @@ void main() {
       expect(failure.type, FailureType.cache);
       expect(failure.message, contains('Failed to reset widgets'));
       verify(() => mockRepository.clearWidgets()).called(1);
-      verifyNever(() => mockRepository.saveWidgets(any()));
     });
 
-    test('should return Failure when saveWidgets throws', () async {
+    test('should handle empty widgets', () async {
       when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-      when(
-        () => mockRepository.fetchRemoteWidgets(),
-      ).thenAnswer((_) async => freshWidgets);
-      when(
-        () => mockRepository.saveWidgets(any()),
-      ).thenThrow(Exception('Save error'));
-
-      final result = await useCase();
-
-      expect(result, isA<Failure<List<DashboardWidget>>>());
-      final failure = result as Failure<List<DashboardWidget>>;
-      expect(failure.type, FailureType.cache);
-      expect(failure.message, contains('Failed to reset widgets'));
-    });
-
-    test('should handle empty remote widgets', () async {
-      when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-      when(
-        () => mockRepository.fetchRemoteWidgets(),
-      ).thenAnswer((_) async => []);
-      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
+      when(() => mockRepository.getWidgets()).thenAnswer((_) async => []);
 
       final result = await useCase();
 
       expect(result, isA<Success<List<DashboardWidget>>>());
       expect((result as Success<List<DashboardWidget>>).data, isEmpty);
-      verify(() => mockRepository.saveWidgets([])).called(1);
-    });
-
-    test('should pass fetched widgets to saveWidgets', () async {
-      when(() => mockRepository.clearWidgets()).thenAnswer((_) async {});
-      when(
-        () => mockRepository.fetchRemoteWidgets(),
-      ).thenAnswer((_) async => freshWidgets);
-      when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
-
-      await useCase();
-
-      verify(() => mockRepository.saveWidgets(freshWidgets)).called(1);
     });
   });
 }

@@ -16,14 +16,12 @@ class ResetWidgetsUseCase implements UseCaseNoParams<List<DashboardWidget>> {
   @override
   Future<Result<List<DashboardWidget>>> call() async {
     try {
-      // Clear local cache
+      // Clear local cache first
       await repository.clearWidgets();
 
-      // Fetch fresh data from remote
-      final widgets = await repository.fetchRemoteWidgets();
-
-      // Cache the fresh data
-      await repository.saveWidgets(widgets);
+      // getWidgets() will fetch from remote since local cache is now empty
+      // and will cache the fresh data automatically
+      final widgets = await repository.getWidgets();
 
       return Success(widgets);
     } catch (e) {

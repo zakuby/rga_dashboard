@@ -61,7 +61,7 @@ void main() {
   group('UpdateWidgetUseCase', () {
     test('should find and update widget by ID', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
       when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
@@ -71,14 +71,14 @@ void main() {
       final widget = (result as Success<DashboardWidget>).data;
       expect(widget.id, 'widget-2');
       expect(widget.title, 'Updated Stocks');
-      verify(() => mockRepository.getLocalWidgets()).called(1);
+      verify(() => mockRepository.getWidgets()).called(1);
       verify(() => mockRepository.saveWidgets(any())).called(1);
     });
 
     test('should preserve other widgets when updating', () async {
       List<DashboardWidget>? savedWidgets;
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
       when(() => mockRepository.saveWidgets(any())).thenAnswer((invocation) {
         savedWidgets =
@@ -100,7 +100,7 @@ void main() {
 
     test('should return Failure when widget not found', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
 
       final nonExistentWidget = const DashboardWidget(
@@ -121,7 +121,7 @@ void main() {
 
     test('should return Failure when getLocalWidgets throws', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenThrow(Exception('Database error'));
 
       final result = await useCase(UpdateWidgetParams(updatedWidget));
@@ -134,7 +134,7 @@ void main() {
 
     test('should return Failure when saveWidgets throws', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
       when(
         () => mockRepository.saveWidgets(any()),
@@ -150,7 +150,7 @@ void main() {
 
     test('should update first widget correctly', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
       when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
@@ -172,7 +172,7 @@ void main() {
 
     test('should update last widget correctly', () async {
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => existingWidgets);
       when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
@@ -195,7 +195,7 @@ void main() {
     test('should handle single widget list', () async {
       final singleWidgetList = [existingWidgets[0]];
       when(
-        () => mockRepository.getLocalWidgets(),
+        () => mockRepository.getWidgets(),
       ).thenAnswer((_) async => singleWidgetList);
       when(() => mockRepository.saveWidgets(any())).thenAnswer((_) async {});
 
@@ -216,7 +216,7 @@ void main() {
     });
 
     test('should return Failure when widget list is empty', () async {
-      when(() => mockRepository.getLocalWidgets()).thenAnswer((_) async => []);
+      when(() => mockRepository.getWidgets()).thenAnswer((_) async => []);
 
       final result = await useCase(UpdateWidgetParams(updatedWidget));
 
