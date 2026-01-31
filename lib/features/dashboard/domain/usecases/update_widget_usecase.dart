@@ -20,7 +20,7 @@ class UpdateWidgetUseCase
   @override
   Future<Result<DashboardWidget>> call(UpdateWidgetParams params) async {
     try {
-      final widgets = await repository.getLocalWidgets();
+      final widgets = await repository.getWidgets();
       final index = widgets.indexWhere((w) => w.id == params.widget.id);
 
       if (index == -1) {

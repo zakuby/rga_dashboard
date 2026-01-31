@@ -47,7 +47,9 @@ void main() {
   });
 
   setUpAll(() {
-    registerFallbackValue(const ReorderParams([]));
+    registerFallbackValue(
+      ReorderParams(widgets: const [], oldIndex: 0, newIndex: 0),
+    );
   });
 
   tearDown(() {
@@ -112,23 +114,35 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [reordering, loaded] when reorder succeeds (move forward)',
         build: () {
+          // UseCase returns the reordered list with correct positions
+          final reorderedFromUseCase = [
+            testWidgets[1].copyWith(position: 0),
+            testWidgets[0].copyWith(position: 1),
+            testWidgets[2].copyWith(position: 2),
+          ];
           when(
             () => mockReorderWidgetsUseCase(any()),
-          ).thenAnswer((_) async => const Success(true));
+          ).thenAnswer((_) async => Success(reorderedFromUseCase));
           return cubit;
         },
         seed: () => DashboardState.loaded(testWidgets),
         act: (cubit) => cubit.reorderWidgets(0, 2),
         expect: () {
-          // Widget 0 moves to position 1 (after adjustment)
-          final reordered = [
+          // Optimistic preview (Cubit's visual reorder)
+          final optimisticPreview = [
+            testWidgets[1],
+            testWidgets[0],
+            testWidgets[2],
+          ];
+          // Final result from UseCase (with correct positions)
+          final finalResult = [
             testWidgets[1].copyWith(position: 0),
             testWidgets[0].copyWith(position: 1),
             testWidgets[2].copyWith(position: 2),
           ];
           return [
-            DashboardState.reordering(reordered),
-            DashboardState.loaded(reordered),
+            DashboardState.reordering(optimisticPreview),
+            DashboardState.loaded(finalResult),
           ];
         },
         verify: (_) {
@@ -139,23 +153,32 @@ void main() {
       blocTest<DashboardCubit, DashboardState>(
         'emits [reordering, loaded] when reorder succeeds (move backward)',
         build: () {
+          final reorderedFromUseCase = [
+            testWidgets[2].copyWith(position: 0),
+            testWidgets[0].copyWith(position: 1),
+            testWidgets[1].copyWith(position: 2),
+          ];
           when(
             () => mockReorderWidgetsUseCase(any()),
-          ).thenAnswer((_) async => const Success(true));
+          ).thenAnswer((_) async => Success(reorderedFromUseCase));
           return cubit;
         },
         seed: () => DashboardState.loaded(testWidgets),
         act: (cubit) => cubit.reorderWidgets(2, 0),
         expect: () {
-          // Widget 2 moves to position 0
-          final reordered = [
+          final optimisticPreview = [
+            testWidgets[2],
+            testWidgets[0],
+            testWidgets[1],
+          ];
+          final finalResult = [
             testWidgets[2].copyWith(position: 0),
             testWidgets[0].copyWith(position: 1),
             testWidgets[1].copyWith(position: 2),
           ];
           return [
-            DashboardState.reordering(reordered),
-            DashboardState.loaded(reordered),
+            DashboardState.reordering(optimisticPreview),
+            DashboardState.loaded(finalResult),
           ];
         },
       );
@@ -171,16 +194,37 @@ void main() {
         seed: () => DashboardState.loaded(testWidgets),
         act: (cubit) => cubit.reorderWidgets(0, 2),
         expect: () {
-          final reordered = [
-            testWidgets[1].copyWith(position: 0),
-            testWidgets[0].copyWith(position: 1),
-            testWidgets[2].copyWith(position: 2),
+          final optimisticPreview = [
+            testWidgets[1],
+            testWidgets[0],
+            testWidgets[2],
           ];
           return [
-            DashboardState.reordering(reordered),
-            // Reverts to original (from state.widgets which still has reordered)
-            DashboardState.loaded(reordered),
+            DashboardState.reordering(optimisticPreview),
+            // Reverts to original on failure
+            DashboardState.loaded(testWidgets),
           ];
+        },
+      );
+
+      blocTest<DashboardCubit, DashboardState>(
+        'passes correct parameters to use case',
+        build: () {
+          when(
+            () => mockReorderWidgetsUseCase(any()),
+          ).thenAnswer((_) async => Success(testWidgets));
+          return cubit;
+        },
+        seed: () => DashboardState.loaded(testWidgets),
+        act: (cubit) => cubit.reorderWidgets(0, 2),
+        verify: (_) {
+          final captured = verify(
+            () => mockReorderWidgetsUseCase(captureAny()),
+          ).captured;
+          final params = captured.first as ReorderParams;
+          expect(params.widgets, testWidgets);
+          expect(params.oldIndex, 0);
+          expect(params.newIndex, 2);
         },
       );
     });

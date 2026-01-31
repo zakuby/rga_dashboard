@@ -61,63 +61,140 @@ void main() {
   });
 
   group('DashboardRepositoryImpl', () {
-    group('fetchRemoteWidgets', () {
-      test('should fetch widgets from remote data source', () async {
-        when(
-          () => mockRemoteDataSource.fetchWidgets(),
-        ).thenAnswer((_) async => remoteWidgetModels);
+    group('getWidgets', () {
+      test(
+        'should return local widgets when they exist (cache-first)',
+        () async {
+          when(
+            () => mockLocalDataSource.hasWidgets(),
+          ).thenAnswer((_) async => true);
+          when(
+            () => mockLocalDataSource.getWidgets(),
+          ).thenAnswer((_) async => testWidgetModels);
 
-        final result = await repository.fetchRemoteWidgets();
+          final result = await repository.getWidgets();
 
-        expect(result.length, 1);
-        expect(result[0].id, 'remote-1');
-        verify(() => mockRemoteDataSource.fetchWidgets()).called(1);
-      });
+          expect(result.length, 2);
+          expect(result[0].id, 'widget-1');
+          verify(() => mockLocalDataSource.hasWidgets()).called(1);
+          verify(() => mockLocalDataSource.getWidgets()).called(1);
+          verifyNever(() => mockRemoteDataSource.fetchWidgets());
+        },
+      );
+
+      test(
+        'should fetch from remote and cache when no local widgets',
+        () async {
+          when(
+            () => mockLocalDataSource.hasWidgets(),
+          ).thenAnswer((_) async => false);
+          when(
+            () => mockRemoteDataSource.fetchWidgets(),
+          ).thenAnswer((_) async => remoteWidgetModels);
+          when(
+            () => mockLocalDataSource.saveWidgets(any()),
+          ).thenAnswer((_) async {});
+
+          final result = await repository.getWidgets();
+
+          expect(result.length, 1);
+          expect(result[0].id, 'remote-1');
+          verify(() => mockLocalDataSource.hasWidgets()).called(1);
+          verify(() => mockRemoteDataSource.fetchWidgets()).called(1);
+          verify(() => mockLocalDataSource.saveWidgets(any())).called(1);
+        },
+      );
 
       test('should convert models to entities', () async {
         when(
-          () => mockRemoteDataSource.fetchWidgets(),
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockLocalDataSource.getWidgets(),
         ).thenAnswer((_) async => testWidgetModels);
 
-        final result = await repository.fetchRemoteWidgets();
+        final result = await repository.getWidgets();
 
         expect(result, isA<List<DashboardWidget>>());
         expect(result[0], isA<DashboardWidget>());
       });
 
+      test('should throw when local check fails', () async {
+        when(
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenThrow(Exception('Database error'));
+
+        expect(() => repository.getWidgets(), throwsA(isA<Exception>()));
+      });
+
       test('should throw when remote fetch fails', () async {
+        when(
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => false);
         when(
           () => mockRemoteDataSource.fetchWidgets(),
         ).thenThrow(Exception('Network error'));
 
-        expect(
-          () => repository.fetchRemoteWidgets(),
-          throwsA(isA<Exception>()),
-        );
-      });
-    });
-
-    group('getLocalWidgets', () {
-      test('should get widgets from local data source', () async {
-        when(
-          () => mockLocalDataSource.getWidgets(),
-        ).thenAnswer((_) async => testWidgetModels);
-
-        final result = await repository.getLocalWidgets();
-
-        expect(result.length, 2);
-        expect(result[0].id, 'widget-1');
-        verify(() => mockLocalDataSource.getWidgets()).called(1);
+        expect(() => repository.getWidgets(), throwsA(isA<Exception>()));
       });
 
-      test('should return empty list when no local widgets', () async {
+      test('should throw when cache save fails after remote fetch', () async {
         when(
-          () => mockLocalDataSource.getWidgets(),
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockRemoteDataSource.fetchWidgets(),
+        ).thenAnswer((_) async => remoteWidgetModels);
+        when(
+          () => mockLocalDataSource.saveWidgets(any()),
+        ).thenThrow(Exception('Save error'));
+
+        expect(() => repository.getWidgets(), throwsA(isA<Exception>()));
+      });
+
+      test('should return empty list when no widgets available', () async {
+        when(
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockRemoteDataSource.fetchWidgets(),
         ).thenAnswer((_) async => []);
+        when(
+          () => mockLocalDataSource.saveWidgets(any()),
+        ).thenAnswer((_) async {});
 
-        final result = await repository.getLocalWidgets();
+        final result = await repository.getWidgets();
 
         expect(result, isEmpty);
+      });
+
+      test('should preserve widget order from local storage', () async {
+        final orderedWidgets = [
+          const DashboardWidgetModel(
+            id: 'widget-3',
+            type: WidgetType.calendar,
+            title: 'Calendar',
+            position: 0,
+          ),
+          const DashboardWidgetModel(
+            id: 'widget-1',
+            type: WidgetType.weather,
+            title: 'Weather',
+            position: 1,
+          ),
+        ];
+
+        when(
+          () => mockLocalDataSource.hasWidgets(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockLocalDataSource.getWidgets(),
+        ).thenAnswer((_) async => orderedWidgets);
+
+        final result = await repository.getWidgets();
+
+        expect(result[0].id, 'widget-3');
+        expect(result[1].id, 'widget-1');
       });
     });
 
@@ -171,28 +248,6 @@ void main() {
         await repository.clearWidgets();
 
         verify(() => mockLocalDataSource.clearWidgets()).called(1);
-      });
-    });
-
-    group('hasLocalWidgets', () {
-      test('should return true when local widgets exist', () async {
-        when(
-          () => mockLocalDataSource.hasWidgets(),
-        ).thenAnswer((_) async => true);
-
-        final result = await repository.hasLocalWidgets();
-
-        expect(result, isTrue);
-      });
-
-      test('should return false when no local widgets', () async {
-        when(
-          () => mockLocalDataSource.hasWidgets(),
-        ).thenAnswer((_) async => false);
-
-        final result = await repository.hasLocalWidgets();
-
-        expect(result, isFalse);
       });
     });
   });

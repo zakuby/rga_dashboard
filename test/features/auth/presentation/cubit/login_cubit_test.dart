@@ -4,13 +4,17 @@ import 'package:mocktail/mocktail.dart';
 import 'package:rga_dashboard/core/result/result.dart';
 import 'package:rga_dashboard/features/auth/domain/entities/user.dart';
 import 'package:rga_dashboard/features/auth/domain/usecases/login_usecase.dart';
+import 'package:rga_dashboard/features/auth/domain/validators/credentials_validator.dart';
 import 'package:rga_dashboard/features/auth/presentation/cubit/login_cubit.dart';
 
 class MockLoginUseCase extends Mock implements LoginUseCase {}
 
+class MockCredentialsValidator extends Mock implements CredentialsValidator {}
+
 void main() {
   late LoginCubit loginCubit;
   late MockLoginUseCase mockLoginUseCase;
+  late MockCredentialsValidator mockValidator;
 
   final testUser = User(
     id: 'test_id',
@@ -21,7 +25,11 @@ void main() {
 
   setUp(() {
     mockLoginUseCase = MockLoginUseCase();
-    loginCubit = LoginCubit(loginUseCase: mockLoginUseCase);
+    mockValidator = MockCredentialsValidator();
+    loginCubit = LoginCubit(
+      loginUseCase: mockLoginUseCase,
+      validator: mockValidator,
+    );
   });
 
   setUpAll(() {
@@ -46,8 +54,16 @@ void main() {
 
     group('login validation', () {
       blocTest<LoginCubit, LoginState>(
-        'emits emailError when email is empty',
-        build: () => loginCubit,
+        'emits emailError when email validation fails',
+        build: () {
+          when(() => mockValidator.validateEmail(any())).thenReturn(
+            const ValidationResult.failure('Please enter your email'),
+          );
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
+          return loginCubit;
+        },
         act: (cubit) => cubit.login(email: '', password: 'password123'),
         expect: () => [
           const LoginState(
@@ -61,20 +77,16 @@ void main() {
       );
 
       blocTest<LoginCubit, LoginState>(
-        'emits emailError when email is whitespace only',
-        build: () => loginCubit,
-        act: (cubit) => cubit.login(email: '   ', password: 'password123'),
-        expect: () => [
-          const LoginState(
-            emailError: 'Please enter your email',
-            passwordError: null,
-          ),
-        ],
-      );
-
-      blocTest<LoginCubit, LoginState>(
-        'emits emailError when email is invalid format',
-        build: () => loginCubit,
+        'emits emailError when email format is invalid',
+        build: () {
+          when(() => mockValidator.validateEmail(any())).thenReturn(
+            const ValidationResult.failure('Please enter a valid email'),
+          );
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
+          return loginCubit;
+        },
         act: (cubit) =>
             cubit.login(email: 'invalid-email', password: 'password123'),
         expect: () => [
@@ -86,20 +98,16 @@ void main() {
       );
 
       blocTest<LoginCubit, LoginState>(
-        'emits emailError when email missing domain',
-        build: () => loginCubit,
-        act: (cubit) => cubit.login(email: 'test@', password: 'password123'),
-        expect: () => [
-          const LoginState(
-            emailError: 'Please enter a valid email',
-            passwordError: null,
-          ),
-        ],
-      );
-
-      blocTest<LoginCubit, LoginState>(
-        'emits passwordError when password is empty',
-        build: () => loginCubit,
+        'emits passwordError when password validation fails',
+        build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(() => mockValidator.validatePassword(any())).thenReturn(
+            const ValidationResult.failure('Please enter your password'),
+          );
+          return loginCubit;
+        },
         act: (cubit) => cubit.login(email: 'test@example.com', password: ''),
         expect: () => [
           const LoginState(
@@ -111,7 +119,17 @@ void main() {
 
       blocTest<LoginCubit, LoginState>(
         'emits passwordError when password is too short',
-        build: () => loginCubit,
+        build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(() => mockValidator.validatePassword(any())).thenReturn(
+            const ValidationResult.failure(
+              'Password must be at least 6 characters',
+            ),
+          );
+          return loginCubit;
+        },
         act: (cubit) =>
             cubit.login(email: 'test@example.com', password: '12345'),
         expect: () => [
@@ -123,8 +141,16 @@ void main() {
       );
 
       blocTest<LoginCubit, LoginState>(
-        'emits both errors when email and password are invalid',
-        build: () => loginCubit,
+        'emits both errors when email and password validation fail',
+        build: () {
+          when(() => mockValidator.validateEmail(any())).thenReturn(
+            const ValidationResult.failure('Please enter your email'),
+          );
+          when(() => mockValidator.validatePassword(any())).thenReturn(
+            const ValidationResult.failure('Please enter your password'),
+          );
+          return loginCubit;
+        },
         act: (cubit) => cubit.login(email: '', password: ''),
         expect: () => [
           const LoginState(
@@ -139,6 +165,12 @@ void main() {
       blocTest<LoginCubit, LoginState>(
         'emits [loading, success] when login succeeds',
         build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
           when(
             () => mockLoginUseCase(any()),
           ).thenAnswer((_) async => Success(testUser));
@@ -163,8 +195,14 @@ void main() {
       );
 
       blocTest<LoginCubit, LoginState>(
-        'accepts valid email formats',
+        'calls use case when validation passes',
         build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
           when(
             () => mockLoginUseCase(any()),
           ).thenAnswer((_) async => Success(testUser));
@@ -185,6 +223,12 @@ void main() {
       blocTest<LoginCubit, LoginState>(
         'emits [loading, error] with authentication failure',
         build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
           when(() => mockLoginUseCase(any())).thenAnswer(
             (_) async => const Failure(
               'Invalid credentials',
@@ -207,6 +251,12 @@ void main() {
       blocTest<LoginCubit, LoginState>(
         'emits [loading, error] with network failure',
         build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
           when(() => mockLoginUseCase(any())).thenAnswer(
             (_) async => const Failure(
               'No internet connection',
@@ -229,6 +279,12 @@ void main() {
       blocTest<LoginCubit, LoginState>(
         'emits [loading, error] with timeout failure',
         build: () {
+          when(
+            () => mockValidator.validateEmail(any()),
+          ).thenReturn(const ValidationResult.success());
+          when(
+            () => mockValidator.validatePassword(any()),
+          ).thenReturn(const ValidationResult.success());
           when(() => mockLoginUseCase(any())).thenAnswer(
             (_) async =>
                 const Failure('Request timed out', type: FailureType.timeout),

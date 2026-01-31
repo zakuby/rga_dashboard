@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/result/result.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../domain/validators/credentials_validator.dart';
 
 part 'login_cubit.freezed.dart';
 part 'login_state.dart';
@@ -12,20 +13,27 @@ part 'login_state.dart';
 @injectable
 class LoginCubit extends Cubit<LoginState> {
   final LoginUseCase _loginUseCase;
+  final CredentialsValidator _validator;
 
-  LoginCubit({required LoginUseCase loginUseCase})
-    : _loginUseCase = loginUseCase,
-      super(const LoginState());
-
-  static final _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  LoginCubit({
+    required LoginUseCase loginUseCase,
+    required CredentialsValidator validator,
+  }) : _loginUseCase = loginUseCase,
+       _validator = validator,
+       super(const LoginState());
 
   /// Validates input and logs in if valid.
   Future<void> login({required String email, required String password}) async {
-    final emailError = _validateEmail(email);
-    final passwordError = _validatePassword(password);
+    final emailValidation = _validator.validateEmail(email);
+    final passwordValidation = _validator.validatePassword(password);
 
-    if (emailError != null || passwordError != null) {
-      emit(LoginState(emailError: emailError, passwordError: passwordError));
+    if (emailValidation.isFailure || passwordValidation.isFailure) {
+      emit(
+        LoginState(
+          emailError: emailValidation.error,
+          passwordError: passwordValidation.error,
+        ),
+      );
       return;
     }
 
@@ -48,26 +56,5 @@ class LoginCubit extends Cubit<LoginState> {
     if (state.hasErrors) {
       emit(const LoginState());
     }
-  }
-
-  String? _validateEmail(String email) {
-    final trimmed = email.trim();
-    if (trimmed.isEmpty) {
-      return 'Please enter your email';
-    }
-    if (!_emailRegex.hasMatch(trimmed)) {
-      return 'Please enter a valid email';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String password) {
-    if (password.isEmpty) {
-      return 'Please enter your password';
-    }
-    if (password.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
   }
 }
